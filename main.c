@@ -36,67 +36,68 @@ void swap(int *a, int *b){
 
 typedef struct DisjointSet{
 	int n;
-	int p[10000];
-	int sz[10000];
+	int parent[10000];//parent is used to find the root with the path compression
+	int size[10000];
 	char* htable[10000];
-	int ng; //num of groups 
-	int lg; //size of largest group
+	int group_num; //num of groups 
+	int max_group_len; //size of largest group
 } DisjointSet;
 
 int hash(DisjointSet* djs,char* s){
-	int tmp = 0;
+	int hash_value = 0;
 	for(int i=0; s[i]!='\0'; i++){
-		tmp += s[i];
+		hash_value += s[i];
 	}
-	tmp %= 10000;
-	while(djs->htable[tmp] != NULL){
-		if (strcmp(s,djs->htable[tmp]) == 0) return tmp;
-		tmp++;
-		tmp %= 10000;
+	hash_value %= 10000;
+	while(djs->htable[hash_value] != NULL){
+		if (strcmp(s,djs->htable[hash_value]) == 0) return hash_value;
+		hash_value++;
+		hash_value %= 10000;
 	}
-	djs->htable[tmp] = s;
-	return tmp;
+	djs->htable[hash_value] = s;
+	return hash_value;
 }
 
 void djs_init(DisjointSet* djs){
-	djs->ng = 0;
-	djs->lg = 0;
-	memset(djs->p,-1,sizeof(int)*10000);
+	djs->group_num = 0;
+	djs->max_group_len = 0;
+	memset(djs->parent,-1,sizeof(int)*10000);
 	for(int i=0;i<10000;i++) djs->htable[i] = NULL;
 }
 
 void djs_MakeSet(DisjointSet* djs,int x){
-	djs->p[x] = x;
-	djs->sz[x] = 1;
-	++djs->ng;
-	djs->lg = max(djs->lg,djs->sz[x]);
+	djs->parent[x] = x;
+	djs->size[x] = 1;
+	++djs->group_num;
+	djs->max_group_len = max(djs->max_group_len,djs->size[x]);
 }
 
 int djs_FindSet(DisjointSet* djs,int x){
-	if(djs->p[x] == x) return x;
-	if(djs->p[x] < 0) {
+	if(djs->parent[x] == x) return x;
+	if(djs->parent[x] < 0) {
 		djs_MakeSet(djs,x);
 		return x;
 	}
-	return djs->p[x] = djs_FindSet(djs, djs->p[x]);
+	return djs->parent[x] = djs_FindSet(djs, djs->parent[x]);
 }
 
 void djs_Union(DisjointSet* djs, int x, int y){
 	x = djs_FindSet(djs, x);
 	y = djs_FindSet(djs, y);
 	if(x == y) return;
-	if(djs->sz[x] < djs->sz[y]) swap(&x,&y);
-	djs->p[y] = x;
-	djs->sz[x] += djs->sz[y];
-	--djs->ng;
-	djs->lg = max(djs->lg, djs->sz[x]);	
+	if(djs->size[x] < djs->size[y]) swap(&x,&y);
+	djs->parent[y] = x;
+	djs->size[x] += djs->size[y];
+	--djs->group_num;
+	djs->max_group_len = max(djs->max_group_len, djs->size[x]);	
 }
 
 
 int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
-	for(int i = 0; i < n_queries; i++){
+	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
+	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		/*if(queries[i].type == expression_match){
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
@@ -118,28 +119,28 @@ int main(void) {
 			api.answer(queries[i].id, ans, 15);
 			getchar();
 		}*/
-		if(queries[i].type == group_analyse){
+		if(queries[loop1].type == group_analyse){
 			int ans[2];
-			int len = queries[i].data.group_analyse_data.len;
-			int* mids = queries[i].data.group_analyse_data.mids;
+			int len = queries[loop1].data.group_analyse_data.len;
+			int* mids = queries[loop1].data.group_analyse_data.mids;
 			DisjointSet djs;
 			djs_init(&djs);
-			for(int j=0; j<len; j++){
+			for(int loop2=0; loop2<len; loop2++){
 				//fprintf(stderr,"str:%s %s\n", mails[mids[j]].from, mails[mids[j]].to);
 				//fprintf(stderr,"str:%d %d\n", hash(&djs,mails[mids[j]].from), hash(&djs,mails[mids[j]].to));
-				djs_Union(&djs, hash(&djs,mails[mids[j]].from), hash(&djs,mails[mids[j]].to));
+				djs_Union(&djs, hash(&djs,mails[mids[loop2]].from), hash(&djs,mails[mids[loop2]].to));
 				//build a hash function for hash
 			}
 			
 
-			ans[0] = djs.ng;
-			ans[1] = djs.lg;
+			ans[0] = djs.group_num;
+			ans[1] = djs.max_group_len;
 			/*
 			fprintf(stderr,"id:%d\n",queries[i].id);
 			fprintf(stderr,"data:%d\n",queries[i].data);
 			fprintf(stderr,"ans:%d %d\n",ans[0],ans[1]);
 			*/
-			api.answer(queries[i].id, ans, 2);
+			api.answer(queries[loop1].id, ans, 2);
 			//return :[ng, lg] 
 			//ng: numberofgroups 
 			//lg: sizeoflargestgroup 
