@@ -43,7 +43,7 @@ typedef struct DisjointSet{
 	int max_group_len; //size of largest group
 } DisjointSet;
 
-int hash(DisjointSet* djs,char* s){
+int hash(DisjointSet* djs,char* s){//with linear probing
 	int hash_value = 0;
 	for(int i=0; s[i]!='\0'; i++){
 		hash_value += s[i];
