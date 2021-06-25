@@ -103,7 +103,7 @@ typedef struct hash_data//use chaining
 hash_data *hash_table[1000000];
 int hash_char(char s)
 {
-	return (s-'A')%32;
+	return (s-'0')%32;
 }
 int hash_token(char token[])
 {
