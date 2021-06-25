@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#define sum_N 100000
+#define len_N 100 //hash function of expression: sum*len_N+len
 
 // The testdata only contains the first 100 mails (mail1 ~ mail100)
 // and 2000 queries for you to debug.
@@ -91,26 +93,32 @@ void djs_Union(DisjointSet* djs, int x, int y){
 	--djs->group_num;
 	djs->max_group_len = max(djs->max_group_len, djs->size[x]);	
 }
+//expression match
+char *hash_table[10000000];
+int in_the_mail(char token[],int mail_index)//true is 1, false is 0
+{
 
+}
 
 int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
-		/*if(queries[i].type == expression_match){
+		if(queries[loop1].type == expression_match){
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
-			char *expression = queries[i].data.expression_match_data.expression;
-			for(int j = 0; j < n_mails;j++){
+			char *expression = queries[loop1].data.expression_match_data.expression;
+			for(int loop2 = 0; loop2 < n_mails;loop2++){
 				// todo
-				mails[j].content;
+				mails[loop2].content;
 			}
-			fprintf(stderr,"id:%d\n",queries[i].id);
-			fprintf(stderr,"data:%d\n",queries[i].data);
-			qsort(ans, n_ans,sizeof(int),comp);
-			api.answer(queries[i].id, ans, n_ans);
+			// fprintf(stderr,"id:%d\n",queries[i].id);
+			// fprintf(stderr,"data:%d\n",queries[i].data);
+			// qsort(ans, n_ans,sizeof(int),comp);
+			api.answer(queries[loop1].id, ans, ans_len);
 		}
+		/*
 		if(queries[i].type == find_similar){
 			int *ans;
 			ans = (int*)malloc(sizeof(int)*100);
