@@ -99,6 +99,7 @@ typedef struct hash_data
 	char *string;
 	int mail_index;
 }hash_data;
+
 hash_data hash_table[1000000];
 int hash_char(char s)
 {
