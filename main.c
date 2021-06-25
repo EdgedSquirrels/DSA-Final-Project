@@ -131,6 +131,34 @@ int in_the_mail(char token[],int mail_index)//true is 1, false is 0
 	}
 }
 
+
+typedef struct Expression_Tree_Node{
+	enum{
+		operator,
+		token
+	} type;
+	struct Expression_Tree_Node* left;
+	struct Expression_Tree_Node* right;
+	union{
+		enum{
+			or,
+			and
+		} operator;
+		struct{
+			bool not;
+			char *s;
+		}token
+
+	} data;
+
+} Expression_Tree_Node;
+
+typedef struct Expression_Tree{
+
+} Expression_Tree;
+
+
+
 int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
