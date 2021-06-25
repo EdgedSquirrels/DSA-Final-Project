@@ -263,7 +263,7 @@ int main(void) {
 						break;
 					}
 				}
-				mails[loop2].content;
+				//庭碩&squirrels你們從這開始喔
 			}
 			// fprintf(stderr,"id:%d\n",queries[i].id);
 			// fprintf(stderr,"data:%d\n",queries[i].data);
