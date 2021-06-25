@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#define sum_N 100000
+#define sum_N 10000
 #define len_N 100 //hash function of expression: sum*len_N+len
 
 // The testdata only contains the first 100 mails (mail1 ~ mail100)
@@ -99,16 +99,46 @@ typedef struct hash_data
 	char *string;
 	int mail_index;
 }hash_data;
-hash_data hash_table[10000000];
+hash_data hash_table[1000000];
+int hash_char(char s)
+{
+	return (s-'A')%32;
+}
+int hash_token(char token[])
+{
+	int loop1=0;
+	int sum=0,len;
+	for(loop1=0;;loop1++)
+	{
+		if(token[loop1]=='\0')
+		{
+			len=loop1+1;
+			break;
+		}
+		sum+=hash_char(token[loop1]);
+	}
+	sum%=sum_N;
+	len%=len_N;
+	return sum*len_N+len;
+}
 int in_the_mail(char token[],int mail_index)//true is 1, false is 0
 {
+	hash_data data=hash_table[hash_token(token)];
+	if(data.mail_index==mail_index&&data.string)
+	{
 
+	}
 }
 
 int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
+	for(int loop1=0;loop1<1000000;loop1++)//initialize the hash_table(expression match)
+	{
+		hash_table[loop1].string=NULL;
+		hash_table[loop1].mail_index=-1;
+	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		if(queries[loop1].type == expression_match){
 			int *ans, n_ans = 0;
