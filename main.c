@@ -94,12 +94,13 @@ void djs_Union(DisjointSet* djs, int x, int y){
 	djs->max_group_len = max(djs->max_group_len, djs->size[x]);	
 }
 //expression match
-typedef struct hash_data
+typedef struct hash_data//use chaining
 {
-	char *string;
+	int string_index;
 	int mail_index;
+	hash_data *next;
 }hash_data;
-hash_data hash_table[1000000];
+hash_data *hash_table[1000000];
 int hash_char(char s)
 {
 	return (s-'A')%32;
@@ -121,10 +122,14 @@ int hash_token(char token[])
 	len%=len_N;
 	return sum*len_N+len;
 }
+int put_into_hash_table()
+{
+
+}
 int in_the_mail(char token[],int mail_index)//true is 1, false is 0
 {
-	hash_data data=hash_table[hash_token(token)];
-	if(data.mail_index==mail_index&&data.string)
+	hash_data *data=hash_table[hash_token(token)];
+	if(data->mail_index==mail_index&&data->string)
 	{
 
 	}
@@ -136,16 +141,20 @@ int main(void) {
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
 	for(int loop1=0;loop1<1000000;loop1++)//initialize the hash_table(expression match)
 	{
-		hash_table[loop1].string=NULL;
-		hash_table[loop1].mail_index=-1;
+		hash_table[loop1]=NULL;
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		if(queries[loop1].type == expression_match){
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
-			for(int loop2 = 0; loop2 < n_mails;loop2++){
+			for(int loop2 = 0; loop2 < n_mails;loop2++)
+			{
 				// todo
+				for(loop3=0;;loop3++)//hash the current email
+				{
+
+				}
 				mails[loop2].content;
 			}
 			// fprintf(stderr,"id:%d\n",queries[i].id);
