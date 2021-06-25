@@ -101,6 +101,20 @@ typedef struct hash_data//use chaining
 	hash_data *next;
 }hash_data;
 hash_data *hash_table[1000000];
+int is_legal(char s)
+{
+	if((s-'0')<0&&(s-'0')>9)
+	{
+		if((s-'A')<0&&(s-'A')>25)
+		{
+			if((s-'a')<0&&(s-'a')>25)
+			{
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
 int hash_char(char s)
 {
 	return (s-'0')%32;
