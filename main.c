@@ -94,7 +94,12 @@ void djs_Union(DisjointSet* djs, int x, int y){
 	djs->max_group_len = max(djs->max_group_len, djs->size[x]);	
 }
 //expression match
-char *hash_table[10000000];
+typedef struct hash_data
+{
+	char *string;
+	int mail_index;
+}hash_data;
+hash_data hash_table[10000000];
 int in_the_mail(char token[],int mail_index)//true is 1, false is 0
 {
 
