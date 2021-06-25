@@ -119,33 +119,80 @@ int hash_char(char s)
 {
 	return (s-'0')%32;
 }
-int hash_token(char token[])
+int hash_token_no_len(int start,int *len,char expression[])
+{
+	int loop1=0;
+	int sum=0;
+	for(loop1=start;;loop1++)
+	{
+		if(is_legal(expression[loop1]))
+		{
+			sum+=hash_char(expression[loop1]);
+		}
+		else
+		{
+			break;
+		}
+		*len=loop1-start;
+		sum%=sum_N;
+		return sum*len_N+(*len)%len_N;
+	}
+}
+int hash_token(int start,int len,char expression[])
 {
 	int loop1=0;
 	int sum=0,len;
-	for(loop1=0;;loop1++)
+	for(loop1=0;loop1<len;loop1++)
 	{
-		if(token[loop1]=='\0')
-		{
-			len=loop1+1;
-			break;
-		}
-		sum+=hash_char(token[loop1]);
+		sum+=hash_char(expression[loop1]);
 	}
 	sum%=sum_N;
 	len%=len_N;
 	return sum*len_N+len;
 }
-int put_into_hash_table()
+int put_into_hash_table(int hash_value,int string_index,int mail_index)
 {
-
-}
-int in_the_mail(char token[],int mail_index)//true is 1, false is 0
-{
-	hash_data *data=hash_table[hash_token(token)];
-	if(data->mail_index==mail_index&&data->string)
+	hash_data *data=hash_table[hash_value];
+	int temp_mail_index;
+	if(data->mail_index!=mail_index)
 	{
-
+		data->string_index=string_index;
+		data->mail_index=mail_index;
+	}
+	else
+	{
+		while(1)
+		{
+			if(data->mail_index==mail_index)
+			{
+				if(data->next=NULL)
+				{
+					data->next=malloc(sizeof(hash_data));
+					data=data->next;
+					data->string_index=string_index;
+					data->mail_index=mail_index;
+					break;
+				}
+				else
+				{
+					data=data->next;
+				}
+			}
+			else
+			{
+				data->string_index=string_index;
+				data->mail_index=mail_index;
+				break;
+			}
+		}
+	}
+	
+}
+int in_the_mail(int start,int len,int mail_index,char expression[])//true is 1, false is 0
+{
+	hash_data *data=hash_table[hash_token(start,len,expression)];
+	if(data->mail_index==mail_index)
+	{
 	}
 }
 
@@ -155,19 +202,25 @@ int main(void) {
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
 	for(int loop1=0;loop1<1000000;loop1++)//initialize the hash_table(expression match)
 	{
-		hash_table[loop1]=NULL;
+		hash_table[loop1]=malloc(sizeof(hash_table));
+		hash_table[loop1]->string_index=-1;
+		hash_table[loop1]->mail_index=-1;
+		hash_table[loop1]->next=NULL;
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		if(queries[loop1].type == expression_match){
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
+			int len;
 			for(int loop2 = 0; loop2 < n_mails;loop2++)
 			{
 				// todo
 				for(loop3=0;;loop3++)//hash the current email
 				{
-
+					hash_token_no_len(loop3,&len,mails[loop2].content);
+					loop3+=(len+1);
+					
 				}
 				mails[loop2].content;
 			}
