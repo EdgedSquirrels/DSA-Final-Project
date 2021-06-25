@@ -131,14 +131,15 @@ int in_the_mail(char token[],int mail_index)//true is 1, false is 0
 	}
 }
 
-
-typedef struct Expression_Tree_Node{
+//////////////////////////////////////////////////////////////////////
+typedef struct exp_TreeNode{ // expression tree node
 	enum{
 		operator,
-		token
+		token,
+		upper_bracket
 	} type;
-	struct Expression_Tree_Node* left;
-	struct Expression_Tree_Node* right;
+	struct exp_TreeNode* left;
+	struct exp_TreeNode* right;
 	union{
 		enum{
 			or,
@@ -147,16 +148,104 @@ typedef struct Expression_Tree_Node{
 		struct{
 			bool not;
 			char *s;
+			int len;
 		}token
-
 	} data;
+} exp_TreeNode;
 
-} Expression_Tree_Node;
+typedef struct exp_Tree{ // expression tree
+	struct exp_TreeNode* root;
+} exp_Tree;
 
-typedef struct Expression_Tree{
+typedef struct exp_StackNode{
+	exp_TreeNode* node;
+	exp_TreeNode* nxt;
+} exp_StackNode;
 
-} Expression_Tree;
+typedef struct exp_Stack{
+	int num;
+	exp_StackNode* head;
+} exp_Stack;
 
+void stk_init(exp_Stack* stk){
+	stk->num = 0;
+	stk->head = NULL;
+}
+
+exp_TreeNode* stk_Peep(exp_Stack* stk){
+	if(stk->head != NULL) return stk->head->node;
+	else return NULL;
+}
+
+exp_TreeNode* stk_Pop(exp_Stack* stk){
+	if(stk->head == NULL) return NULL;
+	exp_TreeNode* tnode = stk->head->node;
+	exp_StackNode old = stk->head;
+	stk->head = stk->head->nxt;
+	free(old);
+	--stk->num;
+	return tnode;
+}
+
+void stk_Push(exp_Stack* stk, exp_TreeNode* tnode){
+	exp_StackNode* snode = (exp_StackNode*)malloc(sizeof(exp_StackNode));
+	snode->node = tnode;
+	snode->nxt = stk->head;
+	stk->head = snode;
+	++stk->num;
+}
+
+void tree_Build(exp_Tree* Tree, char* expression){
+	exp_Stack stk1, stk2;
+	stk_init(stk1);
+	stk_init(stk2);
+	exp_TreeNode* tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
+	tnode->data = upper_bracket;
+	stk_Push(stk2, tnode);
+	int index=0;
+	while(true){
+		if(expression[index] == '('){
+			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
+			if(expression[index+1] == '('){
+				tnode->data = upper_bracket;
+				stk_Push(stk1, tnode);
+				++index;
+				continue;
+			}
+			tnode->type = token;
+			tnode->data.token.not = false;
+			++index;
+			if(expression[index] == '!'){
+				tnode->data.token.not = true;
+				++index;
+			}
+			int index2 = index;
+			while(expression[++index2] != ')');
+			tnode->data.token.s = expression + index;
+			tnode->data.token.len = index2-index;
+			index = index2+1;
+			continue;
+		}
+		if(expression[index] == '|'){
+			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
+			
+		}
+	}
+	free(tnode);
+
+	!() | & ()
+
+}
+
+void tree_Delete(){ // garbage collection
+
+}
+
+
+bool tree_Eval(){ // using expression tree to evaluate true or false
+
+}
+//////////////////////////////////////////////////////////////////////////
 
 
 int main(void) {
@@ -173,6 +262,8 @@ int main(void) {
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
+			exp_Tree Tree;
+			tree_Build(&Tree, expression);
 			for(int loop2 = 0; loop2 < n_mails;loop2++){
 				// todo
 				mails[loop2].content;
@@ -180,7 +271,7 @@ int main(void) {
 			// fprintf(stderr,"id:%d\n",queries[i].id);
 			// fprintf(stderr,"data:%d\n",queries[i].data);
 			// qsort(ans, n_ans,sizeof(int),comp);
-			api.answer(queries[loop1].id, ans, ans_len);
+			api.answer(queries[loop1].id, ans, n_ans);
 		}
 		/*
 		if(queries[i].type == find_similar){
