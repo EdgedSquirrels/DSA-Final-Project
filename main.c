@@ -14,6 +14,9 @@ int n_mails, n_queries;
 mail *mails;
 query *queries;
 
+char stack[2050];//variables for expression
+int top = -1;
+bool postfix[2050]; 
 /*
 int comp(const void* a, const void* b){
 	//compare function for qsort
@@ -27,15 +30,10 @@ void swap(int *a, int *b){
 	*a = *b;
 	*b = _;
 }
-
-//functions for expression_match:
-
 //functions for find_similar:
 
 //functions for group_analyse:
-
-
-
+//----------------------------------------------------------------
 typedef struct DisjointSet{
 	int n;
 	int parent[10000];//parent is used to find the root with the path compression
@@ -93,7 +91,9 @@ void djs_Union(DisjointSet* djs, int x, int y){
 	--djs->group_num;
 	djs->max_group_len = max(djs->max_group_len, djs->size[x]);	
 }
+//----------------------------------------------------------------
 //expression match
+//----------------------------------------------------------------
 typedef struct hash_data//use chaining
 {
 	int string_index;
@@ -232,7 +232,103 @@ int in_the_mail(int start,int len,int mail_index,char expression[],char mail[])/
 		}
 	}
 }
-
+void push(char oper){
+    top++;
+    stack[top] = oper;
+}
+char pop(){
+    top--;
+    return stack[top+1];
+}
+bool isAlpha (char c){
+    if((c>=97&&c<=122)||(c>=65&&c<=90)||(c>=48&&c<=57))
+        return true;
+    else
+        return false;
+}
+bool toBool (char expression[],int *i){
+    int start = *i,length=1,id;
+    *i = *i + 1;
+    while(isAlpha(expression[*i])){
+        length++;
+        *i = *i+1;
+    }
+    *i = *i - 1;
+    return in_the_mail(start,length,id,expression[]);//我不知道mail_id要怎麼處理，之後幫一下
+													//然後mails是全域變數，不用當參數吧(你的in_the_mail)
+}
+bool operate (bool a,bool b,char oper){
+    switch(oper){
+        case '&':
+            return a&b;
+        case '|':
+            return a|b;
+        default:
+            break;
+    }
+}
+bool supreme (char a){
+    if(top==-1)
+        return true;
+    else{
+        char b = stack[top];
+        if(a=='&'&&b=='|')
+            return true;
+        else 
+            return false;
+    }
+}
+bool transfer(char expression[]){
+    int i=0,pl=0; //pl is the length of postfix
+    while(expression[i]!='\0'){
+        if(isAlpha(expression[i])){
+            postfix[pl] = toBool(expression,&i);
+            pl++;
+        }
+        else if(expression[i]=='!'){
+            if(expression[i+1]=='(')
+                push(expression[i]);
+            else{
+                i++;
+                postfix[pl] = !toBool(expression,&i);
+                pl++;
+            }
+        }
+        else if(expression[i]=='('){
+            push(expression[i]);
+        }
+        else if(expression[i]==')'){
+            char op = pop();
+            while(op!='('){
+                postfix[pl-2] = operate(postfix[pl-2],postfix[pl-1],op);
+                pl--;
+                op = pop();
+            }
+            if(top!=-1&&stack[top]=='!')
+                postfix[pl-1] = !postfix[pl-1];
+        }
+        else{
+            if(supreme(expression[i]))
+                push(expression[i]);
+            else{
+                while(top!=-1&&(!supreme(expression[i]))&&stack[top]!='('){
+                    char op = pop();
+                    postfix[pl-2] = operate(postfix[pl-2],postfix[pl-1],op);
+                    pl--;
+                }
+                push(expression[i]);
+            }
+        }
+        i++;
+    }
+    while(top!=-1){
+        char y = pop();
+        postfix[pl-2] = operate(postfix[pl-2],postfix[pl-1],y);
+        pl--;        
+    }
+    return postfix[0];
+}
+//----------------------------------------------------------------
 int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
@@ -263,7 +359,7 @@ int main(void) {
 						break;
 					}
 				}
-				//庭碩&squirrels你們從這開始喔
+				//庭碩&squirrels�????�???????�????
 			}
 			// fprintf(stderr,"id:%d\n",queries[i].id);
 			// fprintf(stderr,"data:%d\n",queries[i].data);
