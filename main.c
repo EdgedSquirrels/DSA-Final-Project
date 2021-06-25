@@ -117,7 +117,11 @@ int is_legal(char s)
 }
 int hash_char(char s)
 {
-	return (s-'0')%32;
+	if((s-'0')<10&&(s-'0')>=0)
+	{
+		return(s-'0')+26;
+	}
+	return (s-'A')%32;
 }
 int hash_token_no_len(int start,int *len,char expression[])
 {
@@ -133,10 +137,10 @@ int hash_token_no_len(int start,int *len,char expression[])
 		{
 			break;
 		}
-		*len=loop1-start;
+		(*len)=loop1-start;
 		sum%=sum_N;
-		return sum*len_N+(*len)%len_N;
 	}
+	return sum*len_N+(*len)%len_N;
 }
 int hash_token(int start,int len,char expression[])
 {
@@ -150,7 +154,7 @@ int hash_token(int start,int len,char expression[])
 	len%=len_N;
 	return sum*len_N+len;
 }
-int put_into_hash_table(int hash_value,int string_index,int mail_index)
+void put_into_hash_table(int hash_value,int string_index,int mail_index)
 {
 	hash_data *data=hash_table[hash_value];
 	int temp_mail_index;
@@ -188,11 +192,44 @@ int put_into_hash_table(int hash_value,int string_index,int mail_index)
 	}
 	
 }
-int in_the_mail(int start,int len,int mail_index,char expression[])//true is 1, false is 0
+int string_compare(int len,char string1[],char string2[])
+{
+	for(int loop1=0;loop1<len;loop1++)
+	{
+		if(hash_char(string1[loop1])!=hash_char(string2[loop1]))
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+int in_the_mail(int start,int len,int mail_index,char expression[],char mail[])//true is 1, false is 0
 {
 	hash_data *data=hash_table[hash_token(start,len,expression)];
-	if(data->mail_index==mail_index)
+	while(1)
 	{
+		if(data->mail_index!=mail_index)
+		{
+			return 0;
+		}
+		else//data->mail_index==mail_index
+		{
+			if(string_compare(len,&expression[start],&mail[data->string_index]))
+			{
+				return 1;
+			}
+			else
+			{
+				if(data->next==NULL)
+				{
+					return 0;
+				}
+				else
+				{
+					data=data->next;
+				}
+			}
+		}
 	}
 }
 
@@ -212,15 +249,19 @@ int main(void) {
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
-			int len;
+			int len,hash_value,ans_len;
 			for(int loop2 = 0; loop2 < n_mails;loop2++)
 			{
 				// todo
 				for(loop3=0;;loop3++)//hash the current email
 				{
-					hash_token_no_len(loop3,&len,mails[loop2].content);
-					loop3+=(len+1);
-					
+					hash_value=hash_token_no_len(loop3,&len,mails[loop2].content);
+					put_into_hash_table(hash_value,loop3,loop2);
+					loop3+=len;
+					if(mails[loop2].content[loop3]=='\0')
+					{
+						break;
+					}
 				}
 				mails[loop2].content;
 			}
