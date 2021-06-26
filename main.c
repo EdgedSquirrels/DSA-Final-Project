@@ -5,10 +5,9 @@
 #include <stdbool.h>
 #define sum_N 10000
 #define len_N 100 //hash function of expression: sum*len_N+len
-
+#define hash_N sum_N*len_N
 // The testdata only contains the first 100 mails (mail1 ~ mail100)
 // and 2000 queries for you to debug.
-
 typedef unsigned long long ull;
 int n_mails, n_queries;
 int mail_index;
@@ -97,7 +96,7 @@ typedef struct hash_data//use chaining
 	int query_index;
 	struct hash_data *next;
 }hash_data;
-hash_data *hash_table[2][sum_N*len_N+2];
+hash_data *hash_table[2][hash_N];
 int is_legal(char s)
 {
 	if((s-'0')<0||(s-'0')>9)
@@ -327,7 +326,7 @@ int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
-	for(int loop1=0;loop1<1000000;loop1++)//initialize the hash_table(expression match)
+	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table(expression match)
 	{
 		hash_table[0][loop1]=malloc(sizeof(hash_table));
 		hash_table[0][loop1]->string_start=NULL;
