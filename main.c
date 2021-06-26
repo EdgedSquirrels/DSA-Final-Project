@@ -390,7 +390,8 @@ int main(void) {
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			int mid=queries[loop1].data.find_similar_data.mid;
 			double threshold=queries[loop1].data.find_similar_data.threshold;
-			int hash_value,len,mid_len=0,mail_len,intersect_len;
+			int hash_value,len;
+			double mid_len=0,mail_len,intersect_len;
 			double similarity;
 			int ans_len=0;
 			for(loop2=0;;loop2++)//hash the mid
@@ -421,7 +422,7 @@ int main(void) {
 					{
 						put_into_hash_table(hash_value,loop3,loop2,loop1,1,mails[loop2].content);
 						mail_len++;
-						if(in_the_mail(loop3,len,loop2,loop1,0,mails[loop2].content))
+						if(in_the_mail(loop3,len,mid,loop1,0,mails[loop2].content))
 						{
 							intersect_len++;
 						}
