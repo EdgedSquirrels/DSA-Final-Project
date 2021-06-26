@@ -97,11 +97,11 @@ void djs_Union(DisjointSet* djs, int x, int y){
 //----------------------------------------------------------------
 typedef struct hash_data//use chaining
 {
-	int string_index;
+	char *string_start;
 	int mail_index;
 	hash_data *next;
 }hash_data;
-hash_data *hash_table[1000000];
+hash_data *hash_table[2][1000000];
 int is_legal(char s)
 {
 	if((s-'0')<0||(s-'0')>9)
@@ -128,16 +128,15 @@ int hash_char(char s)
 	}
 	return (s-'A')%32;
 }
-int hash_token_mail(int start,int *len,int mail_index)
+int hash_token_mail(int start,int *len,char string[])
 {
-	char mail[]=mails[mail_index].content;
 	int loop1=0;
 	int sum=0;
 	for(loop1=start;;loop1++)
 	{
-		if(is_legal(mail[loop1]))
+		if(is_legal(string[loop1]))
 		{
-			sum+=hash_char(mail[loop1]);
+			sum+=hash_char(string[loop1]);
 		}
 		else
 		{
@@ -148,21 +147,21 @@ int hash_token_mail(int start,int *len,int mail_index)
 	(*len)=loop1-start;
 	return sum*len_N+(*len)%len_N;
 }
-int hash_token(int start,int len,char expression[])
+int hash_token(int start,int len,char string[])
 {
 	int loop1=0;
 	int sum=0;
 	for(loop1=0;loop1<len;loop1++)
 	{
-		sum+=hash_char(expression[loop1]);
+		sum+=hash_char(string[loop1]);
 	}
 	sum%=sum_N;
 	len%=len_N;
 	return sum*len_N+len;
 }
-void put_into_hash_table(int hash_value,int string_index,int mail_index)//chaining
+void put_into_hash_table(int hash_value,int string_index,int mail_index,int hash_table_id,int string[])//chaining
 {
-	hash_data *data=hash_table[hash_value];
+	hash_data *data=hash_table[hash_table_id][hash_value];
 	while(1)
 	{
 		if(data->mail_index==mail_index)
@@ -171,7 +170,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index)//chaini
 			{
 				data->next=malloc(sizeof(hash_data));
 				data=data->next;
-				data->string_index=string_index;
+				data->string_start=&string[string_index];
 				data->mail_index=mail_index;
 				return;
 			}
@@ -182,7 +181,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index)//chaini
 		}
 		else
 		{
-			data->string_index=string_index;
+			data->string_start=&string[string_index];
 			data->mail_index=mail_index;
 			return;
 		}
@@ -199,10 +198,9 @@ int string_compare(int len,char string1[],char string2[])
 	}
 	return 1;
 }
-int in_the_mail(int start,int len,int mail_index,char expression[])//true is 1, false is 0
+int in_the_mail(int start,int len,int mail_index,int hash_table_id,char string[])//true is 1, false is 0
 {
-	char mail[]=mails[mail_index].content;
-	hash_data *data=hash_table[hash_token(start,len,expression)];
+	hash_data *data=hash_table[hash_table_id][hash_token(start,len,string)];
 	while(1)
 	{
 		if(data->mail_index!=mail_index)
@@ -211,7 +209,7 @@ int in_the_mail(int start,int len,int mail_index,char expression[])//true is 1, 
 		}
 		else//data->mail_index==mail_index
 		{
-			if(string_compare(len,&expression[start],&mail[data->string_index]))
+			if(string_compare(len,&string[start],data->string_start))
 			{
 				return 1;
 			}
@@ -252,7 +250,7 @@ bool toBool (char expression[],int *i,int mail_index){
         *i = *i+1;
     }
     *i = *i - 1;
-    return in_the_mail(start,length,mail_index,expression);//我不知道mail_id要怎麼處理，之後幫一下
+    return in_the_mail(start,length,mail_index,0,expression);//我不知道mail_id要怎麼處理，之後幫一下
 													//然後mails是全域變數，不用當參數吧(你的in_the_mail)
 }
 bool operate (bool a,bool b,char oper){
@@ -333,10 +331,10 @@ int main(void) {
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
 	for(int loop1=0;loop1<1000000;loop1++)//initialize the hash_table(expression match)
 	{
-		hash_table[loop1]=malloc(sizeof(hash_table));
-		hash_table[loop1]->string_index=-1;
-		hash_table[loop1]->mail_index=-1;
-		hash_table[loop1]->next=NULL;
+		hash_table[0][loop1]=malloc(sizeof(hash_table));
+		hash_table[0][loop1]->string_start=NULL;
+		hash_table[0][loop1]->mail_index=-1;
+		hash_table[0][loop1]->next=NULL;
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		if(queries[loop1].type == expression_match){
@@ -348,10 +346,20 @@ int main(void) {
 			{
 				// todo
 				mail_index = mails[loop2].id;
-				for(loop3=0;;loop3++)//hash the current email
+				for(loop3=0;;loop3++)//hash the current email subject
 				{
-					hash_value=hash_token_mail(loop3,&len,loop2);
-					put_into_hash_table(hash_value,loop3,loop2);
+					hash_value=hash_token_mail(loop3,&len,mails[loop2].subject);
+					put_into_hash_table(hash_value,loop3,loop2,0,mails[loop2].subject);
+					loop3+=len;
+					if(mails[loop2].content[loop3]=='\0')
+					{
+						break;
+					}
+				}
+				for(loop3=0;;loop3++)//hash the current email content
+				{
+					hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
+					put_into_hash_table(hash_value,loop3,loop2,0,mails[loop2].content);
 					loop3+=len;
 					if(mails[loop2].content[loop3]=='\0')
 					{
@@ -402,9 +410,6 @@ int main(void) {
 	}
   return 0;
 }
-
-
-
 /*
 gcc main.c -o main -O3 -std=c11 -w
 g++ validator/validator.cpp -o validator/validator -O3 -std=c11 -w
