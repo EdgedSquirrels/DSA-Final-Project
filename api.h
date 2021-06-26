@@ -47,7 +47,7 @@ typedef struct query {
 
 long _get_process_cputime(){
   static struct timespec t;
-  clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t);
+//   clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &t);
   return t.tv_sec * 1000 + t.tv_nsec / 1000000;
 }
 

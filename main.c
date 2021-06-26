@@ -240,7 +240,7 @@ bool isAlpha (char c){
     else
         return false;
 }
-bool toBool (char expression[],int *i,int mail_index){
+bool toBool (char expression[],int *i,int mail_index,int query_index){
     int start = *i,length=1,id;
     *i = *i + 1;
     while(isAlpha(expression[*i])){
@@ -248,8 +248,8 @@ bool toBool (char expression[],int *i,int mail_index){
         *i = *i+1;
     }
     *i = *i - 1;
-    return in_the_mail(start,length,mail_index,0,expression);//我不知道mail_id要怎麼處理，之後幫一下
-													//然後mails是全域變數，不用當參數吧(你的in_the_mail)
+    return in_the_mail(start,length,mail_index,query_index,0,expression);
+													
 }
 bool operate (bool a,bool b,char oper){
     switch(oper){
@@ -272,7 +272,7 @@ bool supreme (char a){
             return false;
     }
 }
-bool transfer(char expression[],int mail_index){
+bool transfer(char expression[],int mail_index,int query_index){
     int i=0,pl=0; //pl is the length of postfix
     while(expression[i]!='\0'){
         if(isAlpha(expression[i])){
@@ -284,7 +284,7 @@ bool transfer(char expression[],int mail_index){
                 push(expression[i]);
             else{
                 i++;
-                postfix[pl] = !toBool(expression,&i,mail_index);
+                postfix[pl] = !toBool(expression,&i,mail_index,query_index);
                 pl++;
             }
         }
@@ -340,7 +340,7 @@ int main(void) {
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
-			int len,hash_value,ans_len;
+			int len,hash_value;
 			for(int loop2 = 0; loop2 < n_mails;loop2++)
 			{
 				// todo
@@ -365,11 +365,15 @@ int main(void) {
 						break;
 					}
 				}
+				if(transfer(expression,mail_index,loop1)){
+					ans[n_ans] = mail_index;
+					n_ans+=1;
+				}
 			}
 			// fprintf(stderr,"id:%d\n",queries[i].id);
 			// fprintf(stderr,"data:%d\n",queries[i].data);
 			// qsort(ans, n_ans,sizeof(int),comp);
-			api.answer(queries[loop1].id, ans, ans_len);
+			api.answer(queries[loop1].id, ans, n_ans);
 		}
 		if(queries[loop1].type == find_similar){
 			int *ans;
