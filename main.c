@@ -93,22 +93,13 @@ void djs_Union(DisjointSet* djs, int x, int y){
 }
 //----------------------------------------------------------------
 //expression match
-<<<<<<< HEAD
-typedef struct hash_data
-=======
 //----------------------------------------------------------------
 typedef struct hash_data//use chaining
->>>>>>> 9a5e20b6bfa18412561a4bc182c2ca589668532e
 {
-	char *string;
+	int string_index;
 	int mail_index;
+	hash_data *next;
 }hash_data;
-<<<<<<< HEAD
-
-hash_data hash_table[1000000];
-int hash_char(char s)
-{
-=======
 hash_data *hash_table[1000000];
 int is_legal(char s)
 {
@@ -130,7 +121,6 @@ int hash_char(char s)
 	{
 		return(s-'0')+26;
 	}
->>>>>>> 9a5e20b6bfa18412561a4bc182c2ca589668532e
 	return (s-'A')%32;
 }
 int hash_token_no_len(int start,int *len,char expression[])
@@ -164,12 +154,6 @@ int hash_token(int start,int len,char expression[])
 	len%=len_N;
 	return sum*len_N+len;
 }
-<<<<<<< HEAD
-int in_the_mail(char token[],int mail_index)//true is 1, false is 0
-{
-	hash_data data=hash_table[hash_token(token)];
-	if(data.mail_index==mail_index&&data.string)
-=======
 void put_into_hash_table(int hash_value,int string_index,int mail_index)//chaining
 {
 	hash_data *data=hash_table[hash_value];
@@ -211,7 +195,6 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index)//chaini
 int string_compare(int len,char string1[],char string2[])
 {
 	for(int loop1=0;loop1<len;loop1++)
->>>>>>> 9a5e20b6bfa18412561a4bc182c2ca589668532e
 	{
 		if(hash_char(string1[loop1])!=hash_char(string2[loop1]))
 		{
@@ -220,145 +203,6 @@ int string_compare(int len,char string1[],char string2[])
 	}
 	return 1;
 }
-<<<<<<< HEAD
-
-//////////////////////////////////////////////////////////////////////
-typedef struct exp_TreeNode{ // expression tree node
-	enum{
-		operator,
-		token,
-		upper_bracket
-	} type;
-	struct exp_TreeNode* left;
-	struct exp_TreeNode* right;
-	union{
-		enum{
-			or,
-			and
-		} operator;
-		struct{
-			bool not;
-			char *s;
-			int len;
-		}token
-	} data;
-} exp_TreeNode;
-
-typedef struct exp_Tree{ // expression tree
-	struct exp_TreeNode* root;
-} exp_Tree;
-
-typedef struct exp_StackNode{
-	exp_TreeNode* node;
-	exp_TreeNode* nxt;
-} exp_StackNode;
-
-typedef struct exp_Stack{
-	int num;
-	exp_StackNode* head;
-} exp_Stack;
-
-void stk_init(exp_Stack* stk){
-	stk->num = 0;
-	stk->head = NULL;
-}
-
-exp_TreeNode* stk_Peep(exp_Stack* stk){
-	if(stk->head != NULL) return stk->head->node;
-	else return NULL;
-}
-
-exp_TreeNode* stk_Pop(exp_Stack* stk){
-	if(stk->head == NULL) return NULL;
-	exp_StackNode old = stk->head;
-	exp_TreeNode* tnode = old->node;
-	stk->head = old->nxt;
-	free(old);
-	--stk->num;
-	return tnode;
-}
-
-exp_TreeNode* stk_Move(exp_Stack* stk1, exp_Stack stk2){
-	exp_TreeNode* tnode1 = stk_Pop(stk1);
-	exp_TreeNode* tnode2 = stk_Pop(stk2);
-}
-
-void stk_Push(exp_Stack* stk, exp_TreeNode* tnode){
-	exp_StackNode* snode = (exp_StackNode*)malloc(sizeof(exp_StackNode));
-	snode->node = tnode;
-	snode->nxt = stk->head;
-	stk->head = snode;
-	++stk->num;
-}
-
-void tree_Build(exp_Tree* Tree, char* expression){
-	exp_Stack stk1, stk2;
-	stk_init(stk1);
-	stk_init(stk2);
-	exp_TreeNode* tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-	tnode->data = upper_bracket;
-	stk_Push(stk2, tnode);
-	int index=0;
-	while(true){
-		if(expression[index] == '('){
-			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			if(expression[index+1] == '('){
-				tnode->data = upper_bracket;
-				stk_Push(stk1, tnode);
-				++index;
-				continue;
-			}
-			tnode->type = token;
-			tnode->data.token.not = false;
-			++index;
-			if(expression[index] == '!'){
-				tnode->data.token.not = true;
-				++index;
-			}
-			int index2 = index;
-			while(expression[++index2] != ')');
-			tnode->data.token.s = expression + index;
-			tnode->data.token.len = index2-index;
-			index = index2+1;
-			continue;
-		}
-		if(expression[index] == '|'){
-			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			tnode->type = operator;
-			tnode->data.operator = or;
-			exp_StackNode* snode = stk_Peep(stk2);
-			while(snode != NULL && snode->node->data.operator == and){
-				stk_Move(stk1, stk2); // move the supreme node from stk2 to stk1 and do other operations such as child handling 
-			}
-
-			++index;
-			continue;
-		}
-		if(expression[index] == '&'){
-			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			tnode->type = operator;
-			tnode->data.operator = and;
-			++index;
-			continue;
-		}
-	}
-
-	//!() | & ()
-
-}
-
-void tree_Delete(){ // garbage collection
-
-}
-
-
-bool tree_Eval(){ // using expression tree to evaluate true or false
-
-}
-//////////////////////////////////////////////////////////////////////////
-
-
-=======
 int in_the_mail(int start,int len,int mail_index,char expression[],char mail[])//true is 1, false is 0
 {
 	hash_data *data=hash_table[hash_token(start,len,expression)];
@@ -485,35 +329,22 @@ bool transfer(char expression[]){
     return postfix[0];
 }
 //----------------------------------------------------------------
->>>>>>> 9a5e20b6bfa18412561a4bc182c2ca589668532e
 int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
 	for(int loop1=0;loop1<1000000;loop1++)//initialize the hash_table(expression match)
 	{
-<<<<<<< HEAD
-		hash_table[loop1].string=NULL;
-		hash_table[loop1].mail_index=-1;
-=======
 		hash_table[loop1]=malloc(sizeof(hash_table));
 		hash_table[loop1]->string_index=-1;
 		hash_table[loop1]->mail_index=-1;
 		hash_table[loop1]->next=NULL;
->>>>>>> 9a5e20b6bfa18412561a4bc182c2ca589668532e
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		if(queries[loop1].type == expression_match){
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
-<<<<<<< HEAD
-			exp_Tree Tree;
-			tree_Build(&Tree, expression);
-			for(int loop2 = 0; loop2 < n_mails;loop2++){
-				// todo
-				mails[loop2].content;
-=======
 			int len,hash_value,ans_len;
 			for(int loop2 = 0; loop2 < n_mails;loop2++)
 			{
@@ -529,12 +360,11 @@ int main(void) {
 					}
 				}
 				//庭碩&squirrels�????�???????�????
->>>>>>> 9a5e20b6bfa18412561a4bc182c2ca589668532e
 			}
 			// fprintf(stderr,"id:%d\n",queries[i].id);
 			// fprintf(stderr,"data:%d\n",queries[i].data);
 			// qsort(ans, n_ans,sizeof(int),comp);
-			api.answer(queries[loop1].id, ans, n_ans);
+			api.answer(queries[loop1].id, ans, ans_len);
 		}
 		/*
 		if(queries[i].type == find_similar){
