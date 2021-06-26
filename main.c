@@ -377,10 +377,12 @@ int main(void) {
 		}
 		if(queries[loop1].type == find_similar){
 			int *ans;
-			ans = (int*)malloc(sizeof(int)*100);
+			ans = (int*)malloc(sizeof(int)*n_mails);
 			int mid=queries[loop1].data.find_similar_data.mid;
 			double threshold=queries[loop1].data.find_similar_data.threshold;
 			int hash_value,len,mid_len=0,mail_len,intersect_len;
+			double similarity;
+			int ans_len=0;
 			for(loop2=0;;loop2++)//hash the mid
 			{
 				hash_value=hash_token_mail(loop2,&len,mails[mid].content);
@@ -397,6 +399,7 @@ int main(void) {
 			}
 			for(loop2=0;loop2<n_mails;loop2++)
 			{
+				mail_len=0,intersect_len=0;
 				if(loop2==mid)
 				{
 					continue;
@@ -404,16 +407,29 @@ int main(void) {
 				for(loop3=0;;loop3++)//hash the current email subject
 				{
 					hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
-					put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].content);
+					if(!in_the_mail(loop3,len,loop2,loop1,1,mails[loop2].content))
+					{
+						put_into_hash_table(hash_value,loop3,loop2,loop1,1,mails[loop2].content);
+						mail_len++;
+						if(in_the_mail(loop3,len,loop2,loop1,0,mails[loop2].content))
+						{
+							intersect_len++;
+						}
+					}
 					loop3+=len;
 					if(mails[loop2].content[loop3]=='\0')
 					{
 						break;
 					}
 				}
-
+				similarity=(intersect_len)/(mail_len+mid_len-intersect_len);
+				if(similarity>threshold)
+				{
+					ans[ans_len]=loop2;
+					ans_len++;
+				}
 			}
-			api.answer(queries[loop1].id, ans, 15);
+			api.answer(queries[loop1].id, ans, ans_len);
 		}
 		if(queries[loop1].type == group_analyse){
 			int ans[2];
