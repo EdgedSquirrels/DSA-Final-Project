@@ -99,7 +99,7 @@ typedef struct hash_data//use chaining
 {
 	char *string_start;
 	int mail_index;
-	hash_data *next;
+	struct hash_data *next;
 }hash_data;
 hash_data *hash_table[2][1000000];
 int is_legal(char s)
