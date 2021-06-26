@@ -125,24 +125,20 @@ void tree_Delete(exp_TreeNode* root){ // garbage collection
 
 
 bool tree_Eval(exp_TreeNode* root){ // using expression tree to evaluate true or false
-	//fprintf(stderr,"he");
 	if(root == NULL) fprintf(stderr,"JNOOOF");
 	if(root->type == token) {
-		//root->data.token.result = in_the_mail(0,root->data.token.len   /*,int mail_index*/,root->data.token.s)
-		//fprintf(stderr,"%d",root->data.token.result);
+		/////
+		// determine whether the token contains over here
+		//root->data.token.result = in_the_mail(0,root->data.token.len,root->data.token.s)
 		return root->data.token.result;
-		//return root->data.result;
 	}
 	if(root->type == not) {
-		//fprintf(stderr,"!");
 		return !tree_Eval(root->left);
 	}
 	else{
 		if(root->data.operator == or) {
-			//fprintf(stderr,"|");
 			return (tree_Eval(root->left) || tree_Eval(root->right));
 		}
-		//fprintf(stderr,"&");
 		return (tree_Eval(root->left) && tree_Eval(root->right));
 	}
 }
@@ -152,7 +148,8 @@ int main(){
 	exp_TreeNode* Tree = NULL;
 	tree_Build(&Tree, expression);
 	for(int i=0;i<n_token;i++){
-		//for test
+		// for test 如果第1個字元是1就直接true
+		// 事實上會在下面的tree_Eval判斷true/false
 		if(tokens[i].data.token.s[0] == '1') {
 			tokens[i].data.token.result = true;
 		}
