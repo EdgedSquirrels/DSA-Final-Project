@@ -168,6 +168,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index,int quer
 				data->string_start=&string[string_index];
 				data->mail_index=mail_index;
 				data->query_index=query_index;
+				data->next=NULL;
 				return;
 			}
 			else
@@ -326,13 +327,21 @@ int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
-	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table(expression match)
+	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table0
 	{
 		hash_table[0][loop1]=malloc(sizeof(hash_table));
 		hash_table[0][loop1]->string_start=NULL;
 		hash_table[0][loop1]->mail_index=-1;
 		hash_table[0][loop1]->query_index=-1;
 		hash_table[0][loop1]->next=NULL;
+	}
+	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table1
+	{
+		hash_table[1][loop1]=malloc(sizeof(hash_table));
+		hash_table[1][loop1]->string_start=NULL;
+		hash_table[1][loop1]->mail_index=-1;
+		hash_table[1][loop1]->query_index=-1;
+		hash_table[1][loop1]->next=NULL;
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		if(queries[loop1].type == expression_match){
