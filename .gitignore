@@ -1,0 +1,9 @@
+testdata
+validator
+/testdata
+/validator
+*.pdf
+Makefile
+.git
+.vscode
+*.exe
