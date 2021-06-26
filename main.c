@@ -11,6 +11,7 @@
 
 typedef unsigned long long ull;
 int n_mails, n_queries;
+int mail_index;
 mail *mails;
 query *queries;
 
@@ -254,7 +255,7 @@ bool toBool (char expression[],int *i){
         *i = *i+1;
     }
     *i = *i - 1;
-    return in_the_mail(start,length,id,expression[]);//我不知道mail_id要怎麼處理，之後幫一下
+    return in_the_mail(start,length,expression[]);//我不知道mail_id要怎麼處理，之後幫一下
 													//然後mails是全域變數，不用當參數吧(你的in_the_mail)
 }
 bool operate (bool a,bool b,char oper){
@@ -349,6 +350,7 @@ int main(void) {
 			for(int loop2 = 0; loop2 < n_mails;loop2++)
 			{
 				// todo
+				mail_index = mails[loop2].id;
 				for(loop3=0;;loop3++)//hash the current email
 				{
 					hash_value=hash_token_no_len(loop3,&len,mails[loop2].content);
