@@ -159,7 +159,7 @@ int hash_token(int start,int len,char string[])
 	len%=len_N;
 	return sum*len_N+len;
 }
-void put_into_hash_table(int hash_value,int string_index,int mail_index,int hash_table_id,int string[])//chaining
+void put_into_hash_table(int hash_value,int string_index,int mail_index,int hash_table_id,char string[])//chaining
 {
 	hash_data *data=hash_table[hash_table_id][hash_value];
 	while(1)
