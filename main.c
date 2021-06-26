@@ -104,11 +104,11 @@ typedef struct hash_data//use chaining
 hash_data *hash_table[1000000];
 int is_legal(char s)
 {
-	if((s-'0')<0&&(s-'0')>9)
+	if((s-'0')<0||(s-'0')>9)
 	{
-		if((s-'A')<0&&(s-'A')>25)
+		if((s-'A')<0||(s-'A')>25)
 		{
-			if((s-'a')<0&&(s-'a')>25)
+			if((s-'a')<0||(s-'a')>25)
 			{
 				return 0;
 			}
@@ -118,35 +118,40 @@ int is_legal(char s)
 }
 int hash_char(char s)
 {
+	if(is_legal(s)==0)
+	{
+		return 33;
+	}
 	if((s-'0')<10&&(s-'0')>=0)
 	{
 		return(s-'0')+26;
 	}
 	return (s-'A')%32;
 }
-int hash_token_no_len(int start,int *len,char expression[])
+int hash_token_mail(int start,int *len,int mail_index)
 {
+	char mail[]=mails[mail_index].content;
 	int loop1=0;
 	int sum=0;
 	for(loop1=start;;loop1++)
 	{
-		if(is_legal(expression[loop1]))
+		if(is_legal(mail[loop1]))
 		{
-			sum+=hash_char(expression[loop1]);
+			sum+=hash_char(mail[loop1]);
 		}
 		else
 		{
 			break;
 		}
-		(*len)=loop1-start;
 		sum%=sum_N;
 	}
+	(*len)=loop1-start;
 	return sum*len_N+(*len)%len_N;
 }
 int hash_token(int start,int len,char expression[])
 {
 	int loop1=0;
-	int sum=0,len;
+	int sum=0;
 	for(loop1=0;loop1<len;loop1++)
 	{
 		sum+=hash_char(expression[loop1]);
@@ -158,40 +163,30 @@ int hash_token(int start,int len,char expression[])
 void put_into_hash_table(int hash_value,int string_index,int mail_index)//chaining
 {
 	hash_data *data=hash_table[hash_value];
-	int temp_mail_index;
-	if(data->mail_index!=mail_index)
+	while(1)
 	{
-		data->string_index=string_index;
-		data->mail_index=mail_index;
-	}
-	else
-	{
-		while(1)
+		if(data->mail_index==mail_index)
 		{
-			if(data->mail_index==mail_index)
+			if(data->next=NULL)
 			{
-				if(data->next=NULL)
-				{
-					data->next=malloc(sizeof(hash_data));
-					data=data->next;
-					data->string_index=string_index;
-					data->mail_index=mail_index;
-					break;
-				}
-				else
-				{
-					data=data->next;
-				}
+				data->next=malloc(sizeof(hash_data));
+				data=data->next;
+				data->string_index=string_index;
+				data->mail_index=mail_index;
+				return;
 			}
 			else
 			{
-				data->string_index=string_index;
-				data->mail_index=mail_index;
-				break;
+				data=data->next;
 			}
 		}
+		else
+		{
+			data->string_index=string_index;
+			data->mail_index=mail_index;
+			return;
+		}
 	}
-	
 }
 int string_compare(int len,char string1[],char string2[])
 {
@@ -204,8 +199,9 @@ int string_compare(int len,char string1[],char string2[])
 	}
 	return 1;
 }
-int in_the_mail(int start,int len,int mail_index,char expression[],char mail[])//true is 1, false is 0
+int in_the_mail(int start,int len,int mail_index,char expression[])//true is 1, false is 0
 {
+	char mail[]=mails[mail_index].content;
 	hash_data *data=hash_table[hash_token(start,len,expression)];
 	while(1)
 	{
@@ -233,6 +229,7 @@ int in_the_mail(int start,int len,int mail_index,char expression[],char mail[])/
 		}
 	}
 }
+//end of hashing funcs
 void push(char oper){
     top++;
     stack[top] = oper;
@@ -353,7 +350,7 @@ int main(void) {
 				mail_index = mails[loop2].id;
 				for(loop3=0;;loop3++)//hash the current email
 				{
-					hash_value=hash_token_no_len(loop3,&len,mails[loop2].content);
+					hash_value=hash_token_mail(loop3,&len,loop2);
 					put_into_hash_table(hash_value,loop3,loop2);
 					loop3+=len;
 					if(mails[loop2].content[loop3]=='\0')
@@ -361,7 +358,6 @@ int main(void) {
 						break;
 					}
 				}
-				//庭碩&squirrels�????�???????�????
 			}
 			// fprintf(stderr,"id:%d\n",queries[i].id);
 			// fprintf(stderr,"data:%d\n",queries[i].data);
