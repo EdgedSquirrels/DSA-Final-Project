@@ -94,6 +94,7 @@ typedef struct hash_data//use chaining
 {
 	char *string_start;
 	int mail_index;
+	int query_index;
 	struct hash_data *next;
 }hash_data;
 hash_data *hash_table[2][sum_N*len_N+2];
@@ -154,12 +155,12 @@ int hash_token(int start,int len,char string[])
 	len%=len_N;
 	return sum*len_N+len;
 }
-void put_into_hash_table(int hash_value,int string_index,int mail_index,int hash_table_id,char string[])//chaining
+void put_into_hash_table(int hash_value,int string_index,int mail_index,int query_index,int hash_table_id,char string[])//chaining
 {
 	hash_data *data=hash_table[hash_table_id][hash_value];
 	while(1)
 	{
-		if(data->mail_index==mail_index)
+		if(data->mail_index==mail_index&&data->query_index==query_index)
 		{
 			if(data->next=NULL)
 			{
@@ -167,6 +168,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index,int hash
 				data=data->next;
 				data->string_start=&string[string_index];
 				data->mail_index=mail_index;
+				data->query_index=query_index;
 				return;
 			}
 			else
@@ -178,6 +180,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index,int hash
 		{
 			data->string_start=&string[string_index];
 			data->mail_index=mail_index;
+			data->query_index=query_index;
 			return;
 		}
 	}
@@ -193,12 +196,12 @@ int string_compare(int len,char string1[],char string2[])
 	}
 	return 1;
 }
-int in_the_mail(int start,int len,int mail_index,int hash_table_id,char string[])//true is 1, false is 0
+int in_the_mail(int start,int len,int mail_index,int query_index,int hash_table_id,char string[])//true is 1, false is 0
 {
 	hash_data *data=hash_table[hash_table_id][hash_token(start,len,string)];
 	while(1)
 	{
-		if(data->mail_index!=mail_index)
+		if(data->mail_index!=mail_index||data->query_index!=query_index)
 		{
 			return 0;
 		}
@@ -329,6 +332,7 @@ int main(void) {
 		hash_table[0][loop1]=malloc(sizeof(hash_table));
 		hash_table[0][loop1]->string_start=NULL;
 		hash_table[0][loop1]->mail_index=-1;
+		hash_table[0][loop1]->query_index=-1;
 		hash_table[0][loop1]->next=NULL;
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
@@ -344,7 +348,7 @@ int main(void) {
 				for(loop3=0;;loop3++)//hash the current email subject
 				{
 					hash_value=hash_token_mail(loop3,&len,mails[loop2].subject);
-					put_into_hash_table(hash_value,loop3,loop2,0,mails[loop2].subject);
+					put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].subject);
 					loop3+=len;
 					if(mails[loop2].subject[loop3]=='\0')
 					{
@@ -354,7 +358,7 @@ int main(void) {
 				for(loop3=0;;loop3++)//hash the current email content
 				{
 					hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
-					put_into_hash_table(hash_value,loop3,loop2,0,mails[loop2].content);
+					put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].content);
 					loop3+=len;
 					if(mails[loop2].content[loop3]=='\0')
 					{
