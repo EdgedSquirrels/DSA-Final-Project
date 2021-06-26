@@ -378,11 +378,42 @@ int main(void) {
 		if(queries[loop1].type == find_similar){
 			int *ans;
 			ans = (int*)malloc(sizeof(int)*100);
-			// fprintf(stderr,"id:%d\n",queries[i].id);
-			// fprintf(stderr,"data:%d\n",queries[i].data);
+			int mid=queries[loop1].data.find_similar_data.mid;
+			double threshold=queries[loop1].data.find_similar_data.threshold;
+			int hash_value,len,mid_len=0,mail_len,intersect_len;
+			for(loop2=0;;loop2++)//hash the mid
+			{
+				hash_value=hash_token_mail(loop2,&len,mails[mid].content);
+				if(!in_the_mail(loop2,len,mid,loop1,0,mails[mid].content))
+				{
+					put_into_hash_table(hash_value,loop2,mid,loop1,0,mails[mid].content);
+					mid_len++;
+				}
+				loop2+=len;
+				if(mails[mid].content[loop2]=='\0')
+				{
+					break;
+				}
+			}
+			for(loop2=0;loop2<n_mails;loop2++)
+			{
+				if(loop2==mid)
+				{
+					continue;
+				}
+				for(loop3=0;;loop3++)//hash the current email subject
+				{
+					hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
+					put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].content);
+					loop3+=len;
+					if(mails[loop2].content[loop3]=='\0')
+					{
+						break;
+					}
+				}
 
+			}
 			api.answer(queries[loop1].id, ans, 15);
-			// getchar();
 		}
 		if(queries[loop1].type == group_analyse){
 			int ans[2];
