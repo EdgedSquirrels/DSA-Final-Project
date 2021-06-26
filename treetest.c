@@ -1,12 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+////
+bool isAlpha (char c){ 
+    if((c>=97&&c<=122)||(c>=65&&c<=90)||(c>=48&&c<=57))
+        return true;
+    else
+        return false;
+}
+/// 
 typedef struct exp_TreeNode{ // expression tree node
 	enum{
 		operator,
-		token,
-		upper_bracket
+		token, 
+		upper_bracket,
+		not
 	} type;
 	struct exp_TreeNode* left;
 	struct exp_TreeNode* right;
@@ -16,46 +24,29 @@ typedef struct exp_TreeNode{ // expression tree node
 			and
 		} operator;
 		struct{
-			bool not;
 			char *s;
 			int len;
-			bool contain;
+			bool result;
 		}token;
-		bool result;
 	} data;
 } exp_TreeNode;
-
-/*
-typedef struct exp_Tree{ // expression tree
-	struct exp_TreeNode* root;
-} exp_Tree;
-*/
-/*
-typedef struct exp_StackNode{
-	exp_TreeNode* node;
-	exp_TreeNode* nxt;
-} exp_StackNode;
-
-typedef struct exp_Stack{
-	int num;
-	exp_StackNode* head;
-} exp_Stack;
-*/
 
 exp_TreeNode *stk1[2050], *stk2[2050], tokens[2050];
 int n_stk1, n_stk2, n_token;
 
-exp_TreeNode* stk_Move(){
+exp_TreeNode* stk_Move(int type){ //type1: not type2: other
 	// pop two nodes in stk1 and their parent is stk2->top
 	exp_TreeNode *pnode =stk2[n_stk2-1];
-	pnode->left = stk1[n_stk1-1];
-	pnode->right = stk1[n_stk1-2];
 	--n_stk2;
-	--n_stk1;
+	pnode->left = stk1[n_stk1-1];
+	if(type != 1){
+		--n_stk1;
+		pnode->right = stk1[n_stk1-1];
+	}
 	stk1[n_stk1-1] = pnode;
 }
 
-void tree_Build(exp_TreeNode* root, char* expression){
+void tree_Build(exp_TreeNode** root, char* expression){
 	n_stk1 = 0;
     n_stk2 = 0;
 	n_token = 0;
@@ -64,94 +55,108 @@ void tree_Build(exp_TreeNode* root, char* expression){
     stk2[n_stk2++] = tnode; // push tnode to stk2
 	int index=0;
 	while(true){
-		if(expression[index] == '('){
-			if(expression[index+1] == '('){
-				tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-				tnode->type = upper_bracket;
-				stk2[n_stk2++] = tnode;
-				++index;
-				continue;
-			}
-			tnode = &tokens[n_token++];
-			fprintf(stderr,"%d\n",n_token);
-			tnode->type = token;
-			tnode->data.token.not = false;
-			if(expression[++index] == '!'){
-				tnode->data.token.not = true;
-				++index;
-			}
-			int index2 = index;
-			while(expression[++index2] != ')');
-			tnode->data.token.s = expression + index;
-			tnode->data.token.len = index2-index;
-			tnode->data.token.contain = false;
-			index = index2+1;
-			continue;
-		}
-		if(expression[index] == '|'){
-			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			tnode->type = operator;
-			tnode->data.operator = or;
-			while(n_stk2 > 0 && stk2[n_stk2-1]->type == operator && stk2[n_stk2-1]->data.operator == and){
-				stk_Move(); // move the supreme node from stk2 to stk1 and do other operations such as child handling 
-			}
-			stk2[n_stk2++] = tnode;
-			++index;
-			continue;
-		}
-		if(expression[index] == '&'){
-			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			tnode->type = operator;
-			tnode->data.operator = and;
-			while(n_stk2 > 0 && stk2[n_stk2-1]->type == operator){
-				stk_Move(); // move the supreme node from stk2 to stk1 and do other operations such as child handling 
-			}
-			stk2[n_stk2++] = tnode;
-			++index;
-			continue;
-		}	
+		//fprintf(stderr,"%d %d\n", n_stk1, n_stk2);
 		if(expression[index] == ')' || expression[index] == '\0'){
 			while(n_stk2 > 0 && stk2[n_stk2-1]->type != upper_bracket){
-				stk_Move(); // move the supreme node from stk2 to stk1 and do other operations such as child handling 
+				if (stk2[n_stk2-1]->type == not) stk_Move(1);
+				else stk_Move(2); // move the supreme node from stk2 to stk1 and do other operations such as child handling 
 			}
-			--n_stk2;
+			free(stk2[--n_stk2]);
 			if(n_stk2 == 0) break;
 			++index;
 			continue;
 		}
+		if(isAlpha(expression[index])){
+			tnode = &tokens[n_token++];
+			//fprintf(stderr,"%d\n",n_token);
+			tnode->type = token;
+			int index2 = index;
+			while(expression[++index2] != ')');
+			tnode->data.token.s = expression + index;
+			tnode->data.token.len = index2-index;
+			index = index2;
+			stk1[n_stk1++] = tnode;
+			continue;
+		}
+
+		tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
+		if(expression[index] == '('){
+			tnode->type = upper_bracket;
+		}
+		else if(expression[index] == '!'){
+			tnode->type = not;
+			while(n_stk2 > 0){
+				if(stk2[n_stk2-1]->type == not) stk_Move(1);
+				else break;
+			}
+		}
+		else if(expression[index] == '|'){
+			tnode->type = operator;
+			tnode->data.operator = or;
+			while(n_stk2 > 0){
+				if(stk2[n_stk2-1]->type == operator ) stk_Move(2);
+				else if(stk2[n_stk2-1]->type == not) stk_Move(1);
+				else break;
+			}
+		}
+		else if(expression[index] == '&'){
+			tnode->type = operator;
+			tnode->data.operator = and;
+			while(n_stk2 > 0){
+				if(stk2[n_stk2-1]->type == operator && stk2[n_stk2-1]->data.operator == or) stk_Move(2);
+				else if(stk2[n_stk2-1]->type == not) stk_Move(1);
+				else break;
+			}
+		}
+		stk2[n_stk2++] = tnode;
+		++index;
 	}
-	root = stk1[0];
+	*root = stk1[0];
 }
 
 void tree_Delete(exp_TreeNode* root){ // garbage collection
 	if(root->type == token) return;
-	else{
-		tree_Delete(root->left);
+	tree_Delete(root->left);
+	if(root->type == operator){
 		tree_Delete(root->right);
-		free(root);
 	}
+	free(root);
 }
 
 
 bool tree_Eval(exp_TreeNode* root){ // using expression tree to evaluate true or false
-	if(root->type == token) return root->data.result;
+	//fprintf(stderr,"he");
+	if(root == NULL) fprintf(stderr,"JNOOOF");
+	if(root->type == token) {
+		//root->data.token.result = in_the_mail(0,root->data.token.len   /*,int mail_index*/,root->data.token.s)
+		//fprintf(stderr,"%d",root->data.token.result);
+		return root->data.token.result;
+		//return root->data.result;
+	}
+	if(root->type == not) {
+		//fprintf(stderr,"!");
+		return !tree_Eval(root->left);
+	}
 	else{
-		if(root->data.operator == or) return (tree_Eval(root->left) || tree_Eval(root->right));
+		if(root->data.operator == or) {
+			//fprintf(stderr,"|");
+			return (tree_Eval(root->left) || tree_Eval(root->right));
+		}
+		//fprintf(stderr,"&");
 		return (tree_Eval(root->left) && tree_Eval(root->right));
 	}
 }
 
 int main(){
-	char expression[] = "(00)&(!01)&(00)\0\0";
+	char expression[] = "(00)&((111)|(10))&!(99)";
 	exp_TreeNode* Tree = NULL;
-	printf("hi\n");
-	tree_Build(Tree, expression);
-	printf("hi\n");
+	tree_Build(&Tree, expression);
 	for(int i=0;i<n_token;i++){
-		tokens[i].data.result = true;
-		if(tokens[i].data.token.s[0] == '1') tokens[i].data.token.contain = true;
-		// if the subject or the content contains the token, modify contain to true
-		tokens[i].data.result = tokens[i].data.token.contain ^ tokens[i].data.token.not;
+		//for test
+		if(tokens[i].data.token.s[0] == '1') {
+			tokens[i].data.token.result = true;
+		}
+		else tokens[i].data.token.result = false;
 	}
 	printf("%d",tree_Eval(Tree));
 	tree_Delete(Tree);
