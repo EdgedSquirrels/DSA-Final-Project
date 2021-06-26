@@ -1,16 +1,125 @@
-#include "api.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
-#define sum_N 10000
-#define len_N 100 //hash function of expression: sum*len_N+len
 
-// The testdata only contains the first 100 mails (mail1 ~ mail100)
-// and 2000 queries for you to debug.
+char stack[2050];
+int top = -1;
+bool postfix[2050];
 
-typedef unsigned long long ull;
-int n_mails, n_queries;
+int in_the_mail(int start,int len,int mail_index,char expression[]); 
+void push(char oper){
+    top++;
+    stack[top] = oper;
+}
+char pop(){
+    top--;
+    return stack[top+1];
+}
+bool isAlpha (char c){
+    if((c>=97&&c<=122)||(c>=65&&c<=90)||(c>=48&&c<=57))
+        return true;
+    else
+        return false;
+}
+// bool toBool (char expression[],int *i){
+//     int start = *i,length=1,id;
+//     *i = *i + 1;
+//     while(isAlpha(expression[*i])){
+//         length++;
+//         *i = *i+1;
+//     }
+//     *i = *i - 1;
+//     return in_the_mail(start,length,id,expression[]);
+// }
+bool toBool(char expression[],int *i){ //for test purpose
+    if(expression[*i]=='1')
+        return true;
+    else 
+        return false;
+}
+bool operate (bool a,bool b,char oper){
+    switch(oper){
+        case '&':
+            return a&b;
+        case '|':
+            return a|b;
+        default:
+            break;
+    }
+}
+bool supreme (char a){
+    if(top==-1)
+        return true;
+    else{
+        char b = stack[top];
+        if(a=='&'&&b=='|')
+            return true;
+        else 
+            return false;
+    }
+}
+void transfer(char expression[]){
+    int i=0,pl=0; //pl is the length of postfix
+    while(expression[i]!='\0'){
+        if(isAlpha(expression[i])){
+            postfix[pl] = toBool(expression,&i);
+            pl++;
+        }
+        else if(expression[i]=='!'){
+            if(expression[i+1]=='(')
+                push(expression[i]);
+            else{
+                i++;
+                postfix[pl] = !toBool(expression,&i);
+                pl++;
+            }
+        }
+        else if(expression[i]=='('){
+            push(expression[i]);
+        }
+        else if(expression[i]==')'){
+            char op = pop();
+            while(op!='('){
+                postfix[pl-2] = operate(postfix[pl-2],postfix[pl-1],op);
+                pl--;
+                op = pop();
+            }
+            if(top!=-1&&stack[top]=='!')
+                postfix[pl-1] = !postfix[pl-1];
+        }
+        else{
+            if(supreme(expression[i]))
+                push(expression[i]);
+            else{
+                while(top!=-1&&(!supreme(expression[i]))&&stack[top]!='('){
+                    char op = pop();
+                    postfix[pl-2] = operate(postfix[pl-2],postfix[pl-1],op);
+                    pl--;
+                }
+                push(expression[i]);
+            }
+        }
+        i++;
+    }
+    while(top!=-1){
+        char y = pop();
+        postfix[pl-2] = operate(postfix[pl-2],postfix[pl-1],y);
+        pl--;        
+    }
+}
+int main (void){
+    char test[1000];
+    scanf("%s",test);
+    transfer(test);
+    if(postfix[0])
+        printf("true");
+    else
+        printf("false");
+    return 0;
+}
+  270  main.c 
+@@ -14,6 +14,9 @@ int n_mails, n_queries;
 mail *mails;
 query *queries;
 
@@ -20,74 +129,24 @@ bool postfix[2050];
 /*
 int comp(const void* a, const void* b){
 	//compare function for qsort
-	return *(int*)a - *(int*)b;
-}
-*/
-
-#define max(a,b) a > b ? a : b
-void swap(int *a, int *b){
-	int _ = *a;
+@@ -27,15 +30,10 @@ void swap(int *a, int *b){
 	*a = *b;
 	*b = _;
 }
+
+//functions for expression_match:
+
 //functions for find_similar:
 
 //functions for group_analyse:
+
+
+
 //----------------------------------------------------------------
 typedef struct DisjointSet{
 	int n;
 	int parent[10000];//parent is used to find the root with the path compression
-	int size[10000];
-	char* htable[10000];
-	int group_num; //num of groups 
-	int max_group_len; //size of largest group
-} DisjointSet;
-
-int hash(DisjointSet* djs,char* s){//with linear probing
-	int hash_value = 0;
-	for(int i=0; s[i]!='\0'; i++){
-		hash_value += s[i];
-	}
-	hash_value %= 10000;
-	while(djs->htable[hash_value] != NULL){
-		if (strcmp(s,djs->htable[hash_value]) == 0) return hash_value;
-		hash_value++;
-		hash_value %= 10000;
-	}
-	djs->htable[hash_value] = s;
-	return hash_value;
-}
-
-void djs_init(DisjointSet* djs){
-	djs->group_num = 0;
-	djs->max_group_len = 0;
-	memset(djs->parent,-1,sizeof(int)*10000);
-	for(int i=0;i<10000;i++) djs->htable[i] = NULL;
-}
-
-void djs_MakeSet(DisjointSet* djs,int x){
-	djs->parent[x] = x;
-	djs->size[x] = 1;
-	++djs->group_num;
-	djs->max_group_len = max(djs->max_group_len,djs->size[x]);
-}
-
-int djs_FindSet(DisjointSet* djs,int x){
-	if(djs->parent[x] == x) return x;
-	if(djs->parent[x] < 0) {
-		djs_MakeSet(djs,x);
-		return x;
-	}
-	return djs->parent[x] = djs_FindSet(djs, djs->parent[x]);
-}
-
-void djs_Union(DisjointSet* djs, int x, int y){
-	x = djs_FindSet(djs, x);
-	y = djs_FindSet(djs, y);
-	if(x == y) return;
-	if(djs->size[x] < djs->size[y]) swap(&x,&y);
-	djs->parent[y] = x;
-	djs->size[x] += djs->size[y];
+@@ -93,43 +91,136 @@ void djs_Union(DisjointSet* djs, int x, int y){
 	--djs->group_num;
 	djs->max_group_len = max(djs->max_group_len, djs->size[x]);	
 }
@@ -133,20 +192,26 @@ int hash_char(char s)
 >>>>>>> 9a5e20b6bfa18412561a4bc182c2ca589668532e
 	return (s-'A')%32;
 }
+int hash_token(char token[])
 int hash_token_no_len(int start,int *len,char expression[])
 {
 	int loop1=0;
+	int sum=0,len;
+	for(loop1=0;;loop1++)
 	int sum=0;
 	for(loop1=start;;loop1++)
 	{
+		if(token[loop1]=='\0')
 		if(is_legal(expression[loop1]))
 		{
 			sum+=hash_char(expression[loop1]);
 		}
 		else
 		{
+			len=loop1+1;
 			break;
 		}
+		sum+=hash_char(token[loop1]);
 		(*len)=loop1-start;
 		sum%=sum_N;
 	}
@@ -176,6 +241,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index)//chaini
 	int temp_mail_index;
 	if(data->mail_index!=mail_index)
 	{
+
 		data->string_index=string_index;
 		data->mail_index=mail_index;
 	}
@@ -206,7 +272,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index)//chaini
 			}
 		}
 	}
-	
+
 }
 int string_compare(int len,char string1[],char string2[])
 {
@@ -224,137 +290,7 @@ int string_compare(int len,char string1[],char string2[])
 
 //////////////////////////////////////////////////////////////////////
 typedef struct exp_TreeNode{ // expression tree node
-	enum{
-		operator,
-		token,
-		upper_bracket
-	} type;
-	struct exp_TreeNode* left;
-	struct exp_TreeNode* right;
-	union{
-		enum{
-			or,
-			and
-		} operator;
-		struct{
-			bool not;
-			char *s;
-			int len;
-		}token
-	} data;
-} exp_TreeNode;
-
-typedef struct exp_Tree{ // expression tree
-	struct exp_TreeNode* root;
-} exp_Tree;
-
-typedef struct exp_StackNode{
-	exp_TreeNode* node;
-	exp_TreeNode* nxt;
-} exp_StackNode;
-
-typedef struct exp_Stack{
-	int num;
-	exp_StackNode* head;
-} exp_Stack;
-
-void stk_init(exp_Stack* stk){
-	stk->num = 0;
-	stk->head = NULL;
-}
-
-exp_TreeNode* stk_Peep(exp_Stack* stk){
-	if(stk->head != NULL) return stk->head->node;
-	else return NULL;
-}
-
-exp_TreeNode* stk_Pop(exp_Stack* stk){
-	if(stk->head == NULL) return NULL;
-	exp_StackNode old = stk->head;
-	exp_TreeNode* tnode = old->node;
-	stk->head = old->nxt;
-	free(old);
-	--stk->num;
-	return tnode;
-}
-
-exp_TreeNode* stk_Move(exp_Stack* stk1, exp_Stack stk2){
-	exp_TreeNode* tnode1 = stk_Pop(stk1);
-	exp_TreeNode* tnode2 = stk_Pop(stk2);
-}
-
-void stk_Push(exp_Stack* stk, exp_TreeNode* tnode){
-	exp_StackNode* snode = (exp_StackNode*)malloc(sizeof(exp_StackNode));
-	snode->node = tnode;
-	snode->nxt = stk->head;
-	stk->head = snode;
-	++stk->num;
-}
-
-void tree_Build(exp_Tree* Tree, char* expression){
-	exp_Stack stk1, stk2;
-	stk_init(stk1);
-	stk_init(stk2);
-	exp_TreeNode* tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-	tnode->data = upper_bracket;
-	stk_Push(stk2, tnode);
-	int index=0;
-	while(true){
-		if(expression[index] == '('){
-			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			if(expression[index+1] == '('){
-				tnode->data = upper_bracket;
-				stk_Push(stk1, tnode);
-				++index;
-				continue;
-			}
-			tnode->type = token;
-			tnode->data.token.not = false;
-			++index;
-			if(expression[index] == '!'){
-				tnode->data.token.not = true;
-				++index;
-			}
-			int index2 = index;
-			while(expression[++index2] != ')');
-			tnode->data.token.s = expression + index;
-			tnode->data.token.len = index2-index;
-			index = index2+1;
-			continue;
-		}
-		if(expression[index] == '|'){
-			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			tnode->type = operator;
-			tnode->data.operator = or;
-			exp_StackNode* snode = stk_Peep(stk2);
-			while(snode != NULL && snode->node->data.operator == and){
-				stk_Move(stk1, stk2); // move the supreme node from stk2 to stk1 and do other operations such as child handling 
-			}
-
-			++index;
-			continue;
-		}
-		if(expression[index] == '&'){
-			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			tnode->type = operator;
-			tnode->data.operator = and;
-			++index;
-			continue;
-		}
-	}
-
-	//!() | & ()
-
-}
-
-void tree_Delete(){ // garbage collection
-
-}
-
-
-bool tree_Eval(){ // using expression tree to evaluate true or false
-
-}
+@@ -267,25 +358,178 @@ bool tree_Eval(){ // using expression tree to evaluate true or false
 //////////////////////////////////////////////////////////////////////////
 
 
@@ -533,53 +469,24 @@ int main(void) {
 			}
 			// fprintf(stderr,"id:%d\n",queries[i].id);
 			// fprintf(stderr,"data:%d\n",queries[i].data);
-			// qsort(ans, n_ans,sizeof(int),comp);
-			api.answer(queries[loop1].id, ans, n_ans);
-		}
-		/*
-		if(queries[i].type == find_similar){
-			int *ans;
-			ans = (int*)malloc(sizeof(int)*100);
-			fprintf(stderr,"id:%d\n",queries[i].id);
-			fprintf(stderr,"data:%d\n",queries[i].data);
-			api.answer(queries[i].id, ans, 15);
-			getchar();
-		}*/
-		if(queries[loop1].type == group_analyse){
-			int ans[2];
-			int len = queries[loop1].data.group_analyse_data.len;
-			int* mids = queries[loop1].data.group_analyse_data.mids;
-			DisjointSet djs;
-			djs_init(&djs);
-			for(int loop2=0; loop2<len; loop2++){
-				//fprintf(stderr,"str:%s %s\n", mails[mids[j]].from, mails[mids[j]].to);
-				//fprintf(stderr,"str:%d %d\n", hash(&djs,mails[mids[j]].from), hash(&djs,mails[mids[j]].to));
-				djs_Union(&djs, hash(&djs,mails[mids[loop2]].from), hash(&djs,mails[mids[loop2]].to));
-				//build a hash function for hash
-			}
-			
-
-			ans[0] = djs.group_num;
-			ans[1] = djs.max_group_len;
-			/*
-			fprintf(stderr,"id:%d\n",queries[i].id);
-			fprintf(stderr,"data:%d\n",queries[i].data);
-			fprintf(stderr,"ans:%d %d\n",ans[0],ans[1]);
-			*/
-			api.answer(queries[loop1].id, ans, 2);
-			//return :[ng, lg] 
-			//ng: numberofgroups 
-			//lg: sizeoflargestgroup 
-		}
-	}
-  return 0;
-}
-
-
-
-/*
-gcc main.c -o main -O3 -std=c11 -w
-g++ validator/validator.cpp -o validator/validator -O3 -std=c11 -w
-./main < testdata/test.in | validator/validator
-./main < testdata/test.in
-*/
+0 comments on commit c232c7c
+@EdgedSquirrels
+ 
+ 
+Leave a comment
+未選擇任何檔案
+Attach files by dragging & dropping, selecting or pasting them.
+ You’re receiving notifications because you’re watching this repository.
+© 2021 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Loading complete
