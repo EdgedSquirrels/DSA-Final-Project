@@ -179,17 +179,17 @@ exp_TreeNode* stk_Peep(exp_Stack* stk){
 
 exp_TreeNode* stk_Pop(exp_Stack* stk){
 	if(stk->head == NULL) return NULL;
-	exp_TreeNode* tnode = stk->head->node;
 	exp_StackNode old = stk->head;
-	stk->head = stk->head->nxt;
+	exp_TreeNode* tnode = old->node;
+	stk->head = old->nxt;
 	free(old);
 	--stk->num;
 	return tnode;
 }
 
 exp_TreeNode* stk_Move(exp_Stack* stk1, exp_Stack stk2){
-	exp_TreeNode* tnode = stk_Peep(stk1);
-	
+	exp_TreeNode* tnode1 = stk_Pop(stk1);
+	exp_TreeNode* tnode2 = stk_Pop(stk2);
 }
 
 void stk_Push(exp_Stack* stk, exp_TreeNode* tnode){
