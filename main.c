@@ -43,7 +43,6 @@ typedef struct DisjointSet{
 	int group_num; //num of groups 
 	int max_group_len; //size of largest group
 } DisjointSet;
-
 int hash(DisjointSet* djs,char* s){//with linear probing
 	int hash_value = 0;
 	for(int i=0; s[i]!='\0'; i++){
@@ -58,21 +57,18 @@ int hash(DisjointSet* djs,char* s){//with linear probing
 	djs->htable[hash_value] = s;
 	return hash_value;
 }
-
 void djs_init(DisjointSet* djs){
 	djs->group_num = 0;
 	djs->max_group_len = 0;
 	memset(djs->parent,-1,sizeof(int)*10000);
 	for(int i=0;i<10000;i++) djs->htable[i] = NULL;
 }
-
 void djs_MakeSet(DisjointSet* djs,int x){
 	djs->parent[x] = x;
 	djs->size[x] = 1;
 	++djs->group_num;
 	djs->max_group_len = max(djs->max_group_len,djs->size[x]);
 }
-
 int djs_FindSet(DisjointSet* djs,int x){
 	if(djs->parent[x] == x) return x;
 	if(djs->parent[x] < 0) {
@@ -81,7 +77,6 @@ int djs_FindSet(DisjointSet* djs,int x){
 	}
 	return djs->parent[x] = djs_FindSet(djs, djs->parent[x]);
 }
-
 void djs_Union(DisjointSet* djs, int x, int y){
 	x = djs_FindSet(djs, x);
 	y = djs_FindSet(djs, y);
@@ -101,7 +96,7 @@ typedef struct hash_data//use chaining
 	int mail_index;
 	struct hash_data *next;
 }hash_data;
-hash_data *hash_table[2][1000000];
+hash_data *hash_table[2][sum_N*len_N+2];
 int is_legal(char s)
 {
 	if((s-'0')<0||(s-'0')>9)
