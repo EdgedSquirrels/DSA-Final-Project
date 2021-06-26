@@ -244,7 +244,7 @@ bool isAlpha (char c){
     else
         return false;
 }
-bool toBool (char expression[],int *i){
+bool toBool (char expression[],int *i,int mail_index){
     int start = *i,length=1,id;
     *i = *i + 1;
     while(isAlpha(expression[*i])){
@@ -252,7 +252,7 @@ bool toBool (char expression[],int *i){
         *i = *i+1;
     }
     *i = *i - 1;
-    return in_the_mail(start,length,expression[]);//我不知道mail_id要怎麼處理，之後幫一下
+    return in_the_mail(start,length,mail_index,expression);//我不知道mail_id要怎麼處理，之後幫一下
 													//然後mails是全域變數，不用當參數吧(你的in_the_mail)
 }
 bool operate (bool a,bool b,char oper){
@@ -276,11 +276,11 @@ bool supreme (char a){
             return false;
     }
 }
-bool transfer(char expression[]){
+bool transfer(char expression[],int mail_index){
     int i=0,pl=0; //pl is the length of postfix
     while(expression[i]!='\0'){
         if(isAlpha(expression[i])){
-            postfix[pl] = toBool(expression,&i);
+            postfix[pl] = toBool(expression,&i,mail_index);
             pl++;
         }
         else if(expression[i]=='!'){
@@ -288,7 +288,7 @@ bool transfer(char expression[]){
                 push(expression[i]);
             else{
                 i++;
-                postfix[pl] = !toBool(expression,&i);
+                postfix[pl] = !toBool(expression,&i,mail_index);
                 pl++;
             }
         }
@@ -364,15 +364,15 @@ int main(void) {
 			// qsort(ans, n_ans,sizeof(int),comp);
 			api.answer(queries[loop1].id, ans, ans_len);
 		}
-		/*
-		if(queries[i].type == find_similar){
+		if(queries[loop1].type == find_similar){
 			int *ans;
 			ans = (int*)malloc(sizeof(int)*100);
-			fprintf(stderr,"id:%d\n",queries[i].id);
-			fprintf(stderr,"data:%d\n",queries[i].data);
-			api.answer(queries[i].id, ans, 15);
-			getchar();
-		}*/
+			// fprintf(stderr,"id:%d\n",queries[i].id);
+			// fprintf(stderr,"data:%d\n",queries[i].data);
+
+			api.answer(queries[loop1].id, ans, 15);
+			// getchar();
+		}
 		if(queries[loop1].type == group_analyse){
 			int ans[2];
 			int len = queries[loop1].data.group_analyse_data.len;
