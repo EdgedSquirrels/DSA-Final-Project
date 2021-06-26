@@ -276,7 +276,7 @@ bool transfer(char expression[],int mail_index,int query_index){
     int i=0,pl=0; //pl is the length of postfix
     while(expression[i]!='\0'){
         if(isAlpha(expression[i])){
-            postfix[pl] = toBool(expression,&i,mail_index);
+            postfix[pl] = toBool(expression,&i,mail_index,query_index);
             pl++;
         }
         else if(expression[i]=='!'){
