@@ -351,7 +351,7 @@ int main(void) {
 					hash_value=hash_token_mail(loop3,&len,mails[loop2].subject);
 					put_into_hash_table(hash_value,loop3,loop2,0,mails[loop2].subject);
 					loop3+=len;
-					if(mails[loop2].content[loop3]=='\0')
+					if(mails[loop2].subject[loop3]=='\0')
 					{
 						break;
 					}
