@@ -187,6 +187,11 @@ exp_TreeNode* stk_Pop(exp_Stack* stk){
 	return tnode;
 }
 
+exp_TreeNode* stk_Move(exp_Stack* stk1, exp_Stack stk2){
+	exp_TreeNode* tnode = stk_Peep(stk1);
+	
+}
+
 void stk_Push(exp_Stack* stk, exp_TreeNode* tnode){
 	exp_StackNode* snode = (exp_StackNode*)malloc(sizeof(exp_StackNode));
 	snode->node = tnode;
@@ -228,7 +233,22 @@ void tree_Build(exp_Tree* Tree, char* expression){
 		}
 		if(expression[index] == '|'){
 			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
-			
+			tnode->type = operator;
+			tnode->data.operator = or;
+			exp_StackNode* snode = stk_Peep(stk2);
+			while(snode != NULL && snode->node->data.operator == and){
+				stk_Move(stk1, stk2); // move the supreme node from stk2 to stk1 and do other operations such as child handling 
+			}
+
+			++index;
+			continue;
+		}
+		if(expression[index] == '&'){
+			tnode = (exp_TreeNode*)malloc(sizeof(exp_TreeNode));
+			tnode->type = operator;
+			tnode->data.operator = and;
+			++index;
+			continue;
 		}
 	}
 
