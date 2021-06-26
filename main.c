@@ -231,9 +231,8 @@ void tree_Build(exp_Tree* Tree, char* expression){
 			
 		}
 	}
-	free(tnode);
 
-	!() | & ()
+	//!() | & ()
 
 }
 
