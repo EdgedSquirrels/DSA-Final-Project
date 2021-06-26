@@ -162,7 +162,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index,int quer
 	{
 		if(data->mail_index==mail_index&&data->query_index==query_index)
 		{
-			if(data->next=NULL)
+			if(data->next==NULL)
 			{
 				data->next=malloc(sizeof(hash_data));
 				data=data->next;
@@ -404,7 +404,7 @@ int main(void) {
 				{
 					continue;
 				}
-				for(loop3=0;;loop3++)//hash the current email subject
+				for(loop3=0;;loop3++)//hash the current email
 				{
 					hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
 					if(!in_the_mail(loop3,len,loop2,loop1,1,mails[loop2].content))
