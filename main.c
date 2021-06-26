@@ -120,7 +120,7 @@ int hash_char(char s)
 {
 	if(is_legal(s)==0)
 	{
-		return 33;
+		return 37;
 	}
 	if((s-'0')<10&&(s-'0')>=0)
 	{
