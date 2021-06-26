@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#define sum_N 10000
+#define hash_N 1000000
 #define len_N 100 //hash function of expression: sum*len_N+len
 // The testdata only contains the first 100 mails (mail1 ~ mail100)
 // and 2000 queries for you to debug.
+int sum_N=hash_N/len_N;
 typedef unsigned long long ull;
 int n_mails, n_queries;
 int mail_index;
@@ -95,7 +96,6 @@ typedef struct hash_data//use chaining
 	int query_index;
 	struct hash_data *next;
 }hash_data;
-const int hash_N=sum_N*len_N;
 hash_data *hash_table[2][hash_N];
 int is_legal(char s)
 {
