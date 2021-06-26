@@ -344,7 +344,8 @@ int main(void) {
 		hash_table[1][loop1]->next=NULL;
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
-		if(queries[loop1].type == expression_match){
+		if(queries[loop1].type == expression_match)
+		{
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
@@ -383,7 +384,8 @@ int main(void) {
 			// qsort(ans, n_ans,sizeof(int),comp);
 			api.answer(queries[loop1].id, ans, n_ans);
 		}
-		if(queries[loop1].type == find_similar){
+		if(queries[loop1].type == find_similar)
+		{
 			int *ans;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			int mid=queries[loop1].data.find_similar_data.mid;
