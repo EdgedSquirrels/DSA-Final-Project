@@ -93,20 +93,11 @@ void djs_Union(DisjointSet* djs, int x, int y){
 typedef struct hash_data//use chaining
 {
 	char *string_start;
+	int mail_index;
+	int query_index;
 	struct hash_data *next;
 }hash_data;
-hash_data ***hash_table;
-struct node
-{
-	int index;
-	int len;
-	struct node *next;
-};
-typedef struct linked_list//head->...->tail
-{
-	struct node *head;
-	struct node *tail;
-}linked_list;
+hash_data *hash_table[2][hash_N];
 int is_legal(char s)
 {
 	if((s-'0')<0||(s-'0')>9)
@@ -164,27 +155,34 @@ int hash_token(int start,int len,char string[])
 	len%=len_N;
 	return sum*len_N+len;
 }
-void put_into_hash_table(int hash_value,int string_index,int mail_index,char string[])//chaining
+void put_into_hash_table(int hash_value,int string_index,int mail_index,int query_index,int hash_table_id,char string[])//chaining
 {
-	hash_data *data=hash_table[mail_index][hash_value];
-	if(data->string_start==NULL)
-	{
-		data->string_start=&string[string_index];
-		return;
-	}
+	hash_data *data=hash_table[hash_table_id][hash_value];
 	while(1)
 	{
-		if(data->next==NULL)
+		if(data->mail_index==mail_index&&data->query_index==query_index)
 		{
-			data->next=malloc(sizeof(hash_data));
-			data=data->next;
-			data->string_start=&string[string_index];
-			data->next=NULL;
-			return;
+			if(data->next==NULL)
+			{
+				data->next=malloc(sizeof(hash_data));
+				data=data->next;
+				data->string_start=&string[string_index];
+				data->mail_index=mail_index;
+				data->query_index=query_index;
+				data->next=NULL;
+				return;
+			}
+			else
+			{
+				data=data->next;
+			}
 		}
 		else
 		{
-			data=data->next;
+			data->string_start=&string[string_index];
+			data->mail_index=mail_index;
+			data->query_index=query_index;
+			return;
 		}
 	}
 }
@@ -199,16 +197,16 @@ int string_compare(int len,char string1[],char string2[])
 	}
 	return 1;
 }
-int in_the_mail(int start,int len,int mail_index,char string[])//true is 1, false is 0
+int in_the_mail(int start,int len,int mail_index,int query_index,int hash_table_id,char string[])//true is 1, false is 0
 {
-	hash_data *data=hash_table[mail_index][hash_token(start,len,string)];
+	hash_data *data=hash_table[hash_table_id][hash_token(start,len,string)];
 	while(1)
 	{
-		if(data->string_start==NULL)
+		if(data->mail_index!=mail_index||data->query_index!=query_index)
 		{
 			return 0;
 		}
-		else//data->string_start has data
+		else//data->mail_index==mail_index
 		{
 			if(string_compare(len,&string[start],data->string_start))
 			{
@@ -251,7 +249,7 @@ bool toBool (char expression[],int *i,int mail_index,int query_index){
         *i = *i+1;
     }
     *i = *i - 1;
-    return in_the_mail(start,length,mail_index,expression);
+    return in_the_mail(start,length,mail_index,query_index,0,expression);
 													
 }
 bool operate (bool a,bool b,char oper){
@@ -331,103 +329,21 @@ int main(void) {
 	FILE *output=fopen("output.txt","w+");
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
-	double *mail_size=(double*)malloc(sizeof(double)*n_mails);
-	for(loop1=0;loop1<n_mails;loop1++)
+	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table0
 	{
-		mail_size[loop1]=0;
+		hash_table[0][loop1]=malloc(sizeof(hash_table));
+		hash_table[0][loop1]->string_start=NULL;
+		hash_table[0][loop1]->mail_index=-1;
+		hash_table[0][loop1]->query_index=-1;
+		hash_table[0][loop1]->next=NULL;
 	}
-	linked_list **token_list_subject=(linked_list*)malloc(sizeof(linked_list*)*n_mails);//store the index of the token in subject
-	linked_list **token_list_content=(linked_list*)malloc(sizeof(linked_list*)*n_mails);//store the index of the token in content
-	for(int loop1=0;loop1<n_mails;loop1++)//initialize link lists
+	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table1
 	{
-		token_list_subject[loop1]->head=malloc(sizeof(struct node));
-		token_list_subject[loop1]->tail=token_list_subject[loop1]->head;
-		token_list_subject[loop1]->head->index=-1;
-		token_list_subject[loop1]->head->next=NULL;
-		token_list_content[loop1]->head=malloc(sizeof(struct node));
-		token_list_content[loop1]->tail=token_list_content[loop1]->head;
-		token_list_content[loop1]->head->index=-1;
-		token_list_content[loop1]->head->next=NULL;
-	}
-	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);//initialize the whole hash table
-	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
-	{
-		hash_table[loop1]=(hash_data**)malloc(sizeof(hash_data*));
-	}
-	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
-	{
-		for(int loop2=0;loop2<hash_N;loop2++)
-		{
-			hash_table[loop1][loop2]=malloc(sizeof(hash_table));
-			hash_table[loop1][loop2]->string_start=NULL;
-			hash_table[loop1][loop2]->next=NULL;
-		}
-	}
-	for(int loop1=0;loop1<n_mails;loop1++)//hash every mails
-	{
-		for(int loop2=0;;loop2++)//subject
-		{
-			int len=0;
-			if(is_legal(mails[loop1].subject[loop2]))
-			{
-				int hash_value=hash_token_mail(loop2,&len,mails[loop1].subject);
-				if(!in_the_mail(loop2,len,loop1,mails[loop1].subject))
-				{
-					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].subject);
-					mail_size[loop1]+=1;
-					if(token_list_subject[loop1]->tail->index<0)//put the token index to the linked list
-					{
-						token_list_subject[loop1]->tail->index=loop2;
-						token_list_subject[loop1]->tail->len=len;
-					}
-					else
-					{
-						token_list_subject[loop1]->tail->next=malloc(sizeof(struct node));
-						token_list_subject[loop1]->tail=token_list_subject[loop1]->tail->next;
-						token_list_subject[loop1]->tail->index=loop2;
-						token_list_subject[loop1]->tail->len=len;
-						token_list_subject[loop1]->tail->next=NULL;
-					}
-				}
-				loop2+=len;
-			}
-			if(mails[loop1].subject[loop2]=='\0')
-			{
-				break;
-			}
-		}
-		for(int loop2=0;;loop2++)//content
-		{
-			int len=0;
-			if(is_legal(mails[loop1].content[loop2]))
-			{
-				int hash_value=hash_token_mail(loop2,&len,mails[loop1].content);
-				if(!in_the_mail(loop2,len,loop1,mails[loop1].content))
-				{
-					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
-					mail_size[loop1]+=1;
-					if(token_list_content[loop1]->tail->index<0)//put the token index to the linked list
-					{
-						token_list_content[loop1]->tail->index=loop2;
-						token_list_content[loop1]->tail->len=len;
-					}
-					else
-					{
-						token_list_content[loop1]->tail->next=malloc(sizeof(struct node));
-						token_list_content[loop1]->tail=token_list_content[loop1]->tail->next;
-						token_list_content[loop1]->tail->index=loop2;
-						token_list_content[loop1]->tail->len=len;
-						token_list_content[loop1]->tail->next=NULL;
-					}
-				}
-				put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
-				loop2+=len;
-			}
-			if(mails[loop1].content[loop2]=='\0')
-			{
-				break;
-			}
-		}
+		hash_table[1][loop1]=malloc(sizeof(hash_table));
+		hash_table[1][loop1]->string_start=NULL;
+		hash_table[1][loop1]->mail_index=-1;
+		hash_table[1][loop1]->query_index=-1;
+		hash_table[1][loop1]->next=NULL;
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		if(queries[loop1].type == expression_match)
@@ -435,10 +351,37 @@ int main(void) {
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
+			int len,hash_value;
 			for(int loop2 = 0; loop2 < n_mails;loop2++)
 			{
 				// todo
 				mail_index = mails[loop2].id;
+				for(loop3=0;;loop3++)//hash the current email subject
+				{
+					if(is_legal(mails[loop2].subject[loop3]))
+					{
+						hash_value=hash_token_mail(loop3,&len,mails[loop2].subject);
+						put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].subject);
+						loop3+=len;
+					}
+					if(mails[loop2].subject[loop3]=='\0')
+					{
+						break;
+					}
+				}
+				for(loop3=0;;loop3++)//hash the current email content
+				{
+					if(is_legal(mails[loop2].content[loop3]))
+					{
+						hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
+						put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].content);
+						loop3+=len;
+					}
+					if(mails[loop2].content[loop3]=='\0')
+					{
+						break;
+					}
+				}
 				if(transfer(expression,mail_index,loop1)){
 					ans[n_ans] = mail_index;
 					n_ans+=1;
@@ -461,51 +404,56 @@ int main(void) {
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			int mid=queries[loop1].data.find_similar_data.mid;
 			double threshold=queries[loop1].data.find_similar_data.threshold;
-			double intersect_len;
+			int hash_value,len;
+			double mid_len=0,mail_len,intersect_len;
 			double similarity;
-			struct node *node_to_search;
 			int ans_len=0;
+			for(loop2=0;;loop2++)//hash the mid
+			{
+				if(is_legal(mails[mid].content[loop2]))
+				{
+					hash_value=hash_token_mail(loop2,&len,mails[mid].content);
+					if(!in_the_mail(loop2,len,mid,loop1,0,mails[mid].content))
+					{
+						put_into_hash_table(hash_value,loop2,mid,loop1,0,mails[mid].content);
+						mid_len++;
+					}
+					loop2+=len;
+				}
+				if(mails[mid].content[loop2]=='\0')
+				{
+					break;
+				}
+			}
 			for(loop2=0;loop2<n_mails;loop2++)
 			{
-				intersect_len=0;
+				mail_len=0,intersect_len=0;
 				if(loop2==mid)
 				{
 					continue;
 				}
-				//get the intersect_len
-				node_to_search=token_list_subject[loop2]->head;
-				while(1)//search subject
+				for(loop3=0;;loop3++)//hash the current email
 				{
-					if(in_the_mail(node_to_search->index,node_to_search->len,mid,mails[loop2].subject))
+					if(is_legal(mails[loop2].content[loop3]))
 					{
-						intersect_len+=1;
+						hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
+						if(!in_the_mail(loop3,len,loop2,loop1,1,mails[loop2].content))
+						{
+							put_into_hash_table(hash_value,loop3,loop2,loop1,1,mails[loop2].content);
+							mail_len++;
+							if(in_the_mail(loop3,len,mid,loop1,0,mails[loop2].content))
+							{
+								intersect_len++;
+							}
+						}
+						loop3+=len;
 					}
-					if(node_to_search->next=NULL)
+					if(mails[loop2].content[loop3]=='\0')
 					{
 						break;
 					}
-					else
-					{
-						node_to_search=node_to_search->next;
-					}
 				}
-				node_to_search=token_list_content[loop2]->head;
-				while(1)//search content
-				{
-					if(in_the_mail(node_to_search->index,node_to_search->len,mid,mails[loop2].content))
-					{
-						intersect_len+=1;
-					}
-					if(node_to_search->next=NULL)
-					{
-						break;
-					}
-					else
-					{
-						node_to_search=node_to_search->next;
-					}
-				}
-				similarity=(intersect_len)/(mail_size[loop2]+mail_size[mid]-intersect_len);
+				similarity=(intersect_len)/(mail_len+mid_len-intersect_len);
 				if(similarity>threshold)
 				{
 					ans[ans_len]=loop2;
