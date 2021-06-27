@@ -146,7 +146,7 @@ int hash_token(int start,int len,char string[])
 {
 	int loop1=0;
 	int sum=0;
-	for(loop1=0;loop1<len;loop1++)
+	for(loop1=start;loop1<len+start;loop1++)
 	{
 		sum+=hash_char(string[loop1]);
 	}
@@ -379,9 +379,6 @@ int main(void) {
 					n_ans+=1;
 				}
 			}
-			// fprintf(stderr,"id:%d\n",queries[i].id);
-			// fprintf(stderr,"data:%d\n",queries[i].data);
-			// qsort(ans, n_ans,sizeof(int),comp);
 			api.answer(queries[loop1].id, ans, n_ans);
 		}
 		if(queries[loop1].type == find_similar)
