@@ -10,7 +10,7 @@
 int sum_N=hash_N/len_N;
 typedef unsigned long long ull;
 int n_mails, n_queries;
-int mail_index;
+int mail_index, query_index;
 mail *mails;
 query *queries;
 
@@ -125,9 +125,10 @@ int hash_char(char s)
 }
 int hash_token_mail(int start,int *len,char string[])
 {
-	int loop1=0;
+	//string[start]要是legal
+	int loop1=start;
 	int sum=0;
-	for(loop1=start;;loop1++)
+	for(;;loop1++)
 	{
 		if(is_legal(string[loop1]))
 		{
@@ -142,11 +143,11 @@ int hash_token_mail(int start,int *len,char string[])
 	(*len)=loop1-start;
 	return sum*len_N+(*len)%len_N;
 }
-int hash_token(int start,int len,char string[])
+int hash_token(int start,int len,char string[]) 
 {
 	int loop1=0;
 	int sum=0;
-	for(loop1=0;loop1<len;loop1++)
+	for(loop1=start;loop1<len+start;loop1++)
 	{
 		sum+=hash_char(string[loop1]);
 	}
@@ -157,14 +158,23 @@ int hash_token(int start,int len,char string[])
 void put_into_hash_table(int hash_value,int string_index,int mail_index,int query_index,int hash_table_id,char string[])//chaining
 {
 	hash_data *data=hash_table[hash_table_id][hash_value];
+	// 考慮data是NULL的情況
+	if (data == NULL)
+	{
+		data = (hash_data*) malloc(sizeof(hash_data));
+		data->string_start = &string[string_index];
+		data->mail_index = mail_index;
+		data->query_index = query_index;
+		data->next = NULL;
+		return;
+	}
 	while(1)
 	{
 		if(data->mail_index==mail_index&&data->query_index==query_index)
 		{
-			if(data->next==NULL)
+			if(data==NULL)
 			{
-				data->next=malloc(sizeof(hash_data));
-				data=data->next;
+				data=malloc(sizeof(hash_data));
 				data->string_start=&string[string_index];
 				data->mail_index=mail_index;
 				data->query_index=query_index;
@@ -181,6 +191,8 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index,int quer
 			data->string_start=&string[string_index];
 			data->mail_index=mail_index;
 			data->query_index=query_index;
+			data->next = NULL;
+			//garbage collection 省略
 			return;
 		}
 	}
@@ -189,7 +201,7 @@ int string_compare(int len,char string1[],char string2[])
 {
 	for(int loop1=0;loop1<len;loop1++)
 	{
-		if(hash_char(string1[loop1])!=hash_char(string2[loop1]))
+		if(string1[loop1] != string2[loop1])
 		{
 			return 0;
 		}
@@ -199,13 +211,14 @@ int string_compare(int len,char string1[],char string2[])
 int in_the_mail(int start,int len,int mail_index,int query_index,int hash_table_id,char string[])//true is 1, false is 0
 {
 	hash_data *data=hash_table[hash_table_id][hash_token(start,len,string)];
+	if(data == NULL) return 0;
 	while(1)
 	{
 		if(data->mail_index!=mail_index||data->query_index!=query_index)
 		{
 			return 0;
 		}
-		else//data->mail_index==mail_index
+		else// mail_index and query_index are identical 
 		{
 			if(string_compare(len,&string[start],data->string_start))
 			{
@@ -327,25 +340,17 @@ int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
-	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table0
-	{
-		hash_table[0][loop1]=malloc(sizeof(hash_table));
-		hash_table[0][loop1]->string_start=NULL;
-		hash_table[0][loop1]->mail_index=-1;
-		hash_table[0][loop1]->query_index=-1;
-		hash_table[0][loop1]->next=NULL;
-	}
-	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table1
-	{
-		hash_table[1][loop1]=malloc(sizeof(hash_table));
-		hash_table[1][loop1]->string_start=NULL;
-		hash_table[1][loop1]->mail_index=-1;
-		hash_table[1][loop1]->query_index=-1;
-		hash_table[1][loop1]->next=NULL;
+	for(int loop0 = 0; loop0<2; loop0++){ //initialize the hash_table0 & hash_table1
+		hash_table[loop0][loop1]=malloc(sizeof(hash_table));
+		hash_table[loop0][loop1]->string_start=NULL;
+		hash_table[loop0][loop1]->mail_index=-1;
+		hash_table[loop0][loop1]->query_index=-1;
+		hash_table[loop0][loop1]->next=NULL;
 	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
 		if(queries[loop1].type == expression_match)
 		{
+			query_index = queries[loop1].id;
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
@@ -374,7 +379,7 @@ int main(void) {
 						break;
 					}
 				}
-				if(transfer(expression,mail_index,loop1)){
+				if(transfer(expression,mail_index,query_index)){
 					ans[n_ans] = mail_index;
 					n_ans+=1;
 				}
