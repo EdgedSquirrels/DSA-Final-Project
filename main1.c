@@ -153,33 +153,19 @@ int hash_token(int start,int len,char string[])
 	len%=len_N;
 	return sum*len_N+len;
 }
-void put_into_hash_table(int hash_value,int string_index,int mail_index,int query_index,int hash_table_id,char string[])//chaining
+void put_into_hash_table(int hash_value,int string_index,int mail_index,char string[])//chaining
 {
-	hash_data *data=hash_table[hash_table_id][hash_value];
+	hash_data *data=hash_table[mail_index][hash_value];
 	while(1)
 	{
-		if(data->mail_index==mail_index&&data->query_index==query_index)
+		if(data->string_start!=NULL)
 		{
-			if(data->next==NULL)
-			{
-				data->next=malloc(sizeof(hash_data));
-				data=data->next;
-				data->string_start=&string[string_index];
-				data->mail_index=mail_index;
-				data->query_index=query_index;
-				data->next=NULL;
-				return;
-			}
-			else
-			{
-				data=data->next;
-			}
+			data->next=malloc(sizeof(hash_data*))
 		}
 		else
 		{
 			data->string_start=&string[string_index];
-			data->mail_index=mail_index;
-			data->query_index=query_index;
+			data->next=NULL;
 			return;
 		}
 	}
@@ -195,16 +181,16 @@ int string_compare(int len,char string1[],char string2[])
 	}
 	return 1;
 }
-int in_the_mail(int start,int len,int mail_index,int query_index,int hash_table_id,char string[])//true is 1, false is 0
+int in_the_mail(int start,int len,int mail_index,char string[])//true is 1, false is 0
 {
-	hash_data *data=hash_table[hash_table_id][hash_token(start,len,string)];
+	hash_data *data=hash_table[mail_index][hash_token(start,len,string)];
 	while(1)
 	{
-		if(data->mail_index!=mail_index||data->query_index!=query_index)
+		if(data->string_start==NULL)
 		{
 			return 0;
 		}
-		else//data->mail_index==mail_index
+		else//data->string_start has data
 		{
 			if(string_compare(len,&string[start],data->string_start))
 			{
