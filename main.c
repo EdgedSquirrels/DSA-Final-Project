@@ -189,7 +189,7 @@ int string_compare(int len,char string1[],char string2[])
 {
 	for(int loop1=0;loop1<len;loop1++)
 	{
-		if(string1[loop1]!=string2[loop1])
+		if(hash_char(string1[loop1])!=hash_char(string2[loop1]))
 		{
 			return 0;
 		}
