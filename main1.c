@@ -156,19 +156,24 @@ int hash_token(int start,int len,char string[])
 void put_into_hash_table(int hash_value,int string_index,int mail_index,char string[])//chaining
 {
 	hash_data *data=hash_table[mail_index][hash_value];
+	if(data->string_start==NULL)
+	{
+		data->string_start=&string[string_index];
+		return;
+	}
 	while(1)
 	{
-		if(data->string_start!=NULL)
+		if(data->next==NULL)
 		{
 			data->next=malloc(sizeof(hash_data*));
 			data=data->next;
-			data->string_start=NULL;
+			data->string_start=&string[string_index];
 			data->next=NULL;
+			return;
 		}
 		else
 		{
-			data->string_start=&string[string_index];
-			return;
+			data=data->next;
 		}
 	}
 }
@@ -316,6 +321,10 @@ int main(void) {
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
 	double *mail_len=(double*)malloc(sizeof(double)*n_mails);
+	for(loop1=0;loop1<n_mails;loop1++)
+	{
+		mail_len[loop1]=0;
+	}
 	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);//initialize the whole hash table
 	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
 	{
@@ -340,9 +349,9 @@ int main(void) {
 				int hash_value=hash_token_mail(loop2,&len,mails[loop1].subject);
 				if(!in_the_mail(loop2,len,loop1,mails[loop1].subject))
 				{
-
+					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].subject);
+					mail_len[loop1]+=1;
 				}
-				put_into_hash_table(hash_value,loop2,loop1,mails[loop1].subject);
 				loop2+=len;
 			}
 			if(mails[loop1].subject[loop2]=='\0')
@@ -356,6 +365,7 @@ int main(void) {
 			if(is_legal(mails[loop1].content[loop2]))
 			{
 				int hash_value=hash_token_mail(loop2,&len,mails[loop1].content);
+				if(!in_the_mail(loop2))
 				put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
 				loop2+=len;
 			}
