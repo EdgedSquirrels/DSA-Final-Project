@@ -399,13 +399,16 @@ int main(void) {
 			int ans_len=0;
 			for(loop2=0;;loop2++)//hash the mid
 			{
-				hash_value=hash_token_mail(loop2,&len,mails[mid].content);
-				if(!in_the_mail(loop2,len,mid,loop1,0,mails[mid].content))
+				if(is_legal(mails[mid].content[loop2]))
 				{
-					put_into_hash_table(hash_value,loop2,mid,loop1,0,mails[mid].content);
-					mid_len++;
+					hash_value=hash_token_mail(loop2,&len,mails[mid].content);
+					if(!in_the_mail(loop2,len,mid,loop1,0,mails[mid].content))
+					{
+						put_into_hash_table(hash_value,loop2,mid,loop1,0,mails[mid].content);
+						mid_len++;
+					}
+					loop2+=len;
 				}
-				loop2+=len;
 				if(mails[mid].content[loop2]=='\0')
 				{
 					break;
@@ -420,17 +423,20 @@ int main(void) {
 				}
 				for(loop3=0;;loop3++)//hash the current email
 				{
-					hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
-					if(!in_the_mail(loop3,len,loop2,loop1,1,mails[loop2].content))
+					if(is_legal(mails[loop2].content[loop3]))
 					{
-						put_into_hash_table(hash_value,loop3,loop2,loop1,1,mails[loop2].content);
-						mail_len++;
-						if(in_the_mail(loop3,len,mid,loop1,0,mails[loop2].content))
+						hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
+						if(!in_the_mail(loop3,len,loop2,loop1,1,mails[loop2].content))
 						{
-							intersect_len++;
+							put_into_hash_table(hash_value,loop3,loop2,loop1,1,mails[loop2].content);
+							mail_len++;
+							if(in_the_mail(loop3,len,mid,loop1,0,mails[loop2].content))
+							{
+								intersect_len++;
+							}
 						}
+						loop3+=len;
 					}
-					loop3+=len;
 					if(mails[loop2].content[loop3]=='\0')
 					{
 						break;
