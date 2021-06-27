@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#define debug 1
+#define debug 0
 #define hash_N 1000000
 #define len_N 100 //hash function of expression: sum*len_N+len
 // The testdata only contains the first 100 mails (mail1 ~ mail100)
