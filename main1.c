@@ -103,8 +103,8 @@ struct node
 };
 typedef struct linked_list//head->...->tail
 {
-	struct node head;
-	struct node tail;
+	struct node *head;
+	struct node *tail;
 }linked_list;
 int is_legal(char s)
 {
@@ -336,6 +336,10 @@ int main(void) {
 		mail_size[loop1]=0;
 	}
 	linked_list **token_list=(linked_list*)malloc(sizeof(linked_list*)*n_mails);
+	for(int loop1=0;loop1<n_mails;loop1++)
+	{
+		token_list[loop1]->head=(struct node)malloc(sizeof(struct node));
+	}
 	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);//initialize the whole hash table
 	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
 	{
