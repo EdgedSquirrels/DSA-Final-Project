@@ -476,7 +476,7 @@ int main(void) {
 				node_to_search=token_list_subject[loop2]->head;
 				while(1)//search subject
 				{
-					if(in_the_mail(node_to_search->index,node_to_search->len,loop2,mails[loop2].subject))
+					if(in_the_mail(node_to_search->index,node_to_search->len,mid,mails[loop2].subject))
 					{
 						intersect_len+=1;
 					}
@@ -492,7 +492,7 @@ int main(void) {
 				node_to_search=token_list_content[loop2]->head;
 				while(1)//search content
 				{
-					if(in_the_mail(node_to_search->index,node_to_search->len,loop2,mails[loop2].subject))
+					if(in_the_mail(node_to_search->index,node_to_search->len,mid,mails[loop2].content))
 					{
 						intersect_len+=1;
 					}
