@@ -165,7 +165,7 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index,char str
 	{
 		if(data->next==NULL)
 		{
-			data->next=malloc(sizeof(hash_data*));
+			data->next=malloc(sizeof(hash_data));
 			data=data->next;
 			data->string_start=&string[string_index];
 			data->next=NULL;
