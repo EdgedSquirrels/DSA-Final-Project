@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#define debug 1
 #define hash_N 1000000
 #define len_N 100 //hash function of expression: sum*len_N+len
 // The testdata only contains the first 100 mails (mail1 ~ mail100)
@@ -325,6 +326,7 @@ bool transfer(char expression[],int mail_index,int query_index){
 //----------------------------------------------------------------
 int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
+	FILE *output=fopen("output.txt","w+");
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
 	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table0
@@ -386,6 +388,19 @@ int main(void) {
 				}
 			}
 			api.answer(queries[loop1].id, ans, n_ans);
+			if(debug)
+			{
+				char blank=' ',coma=':',enter='\n';
+				fwrite(&loop1,sizeof(int),1,output);
+				fwrite(&coma,sizeof(char),1,output);
+				fwrite(&blank,sizeof(char),1,output);
+				for(loop2=0;loop2<n_ans;loop2++)
+				{
+					fwrite(&ans[loop2],sizeof(int),1,output);
+					fwrite(&blank,sizeof(char),1,output);
+				}
+				fwrite(&enter,sizeof(char),1,output);
+			}
 		}
 		if(queries[loop1].type == find_similar)
 		{
