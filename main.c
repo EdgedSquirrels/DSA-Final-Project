@@ -10,13 +10,19 @@
 int sum_N=hash_N/len_N;
 typedef unsigned long long ull;
 int n_mails, n_queries;
-int mail_index, query_index;
+int mail_index;
 mail *mails;
 query *queries;
 
 char stack[2050];//variables for expression
 int top = -1;
 bool postfix[2050]; 
+/*
+int comp(const void* a, const void* b){
+	//compare function for qsort
+	return *(int*)a - *(int*)b;
+}
+*/
 
 #define max(a,b) a > b ? a : b
 void swap(int *a, int *b){
@@ -117,17 +123,15 @@ int hash_char(char s)
 	}
 	return (s-'A')%32;
 }
-
-//string要是legal
-int hash_token_mail(char *string,int *len) 
+int hash_token_mail(int start,int *len,char string[])
 {
+	int loop1=0;
 	int sum=0;
-	*len = 0;
-	for(;;(*len)+=1)
+	for(loop1=start;;loop1++)
 	{
-		if(is_legal(string[*len]))
+		if(is_legal(string[loop1]))
 		{
-			sum+=hash_char(string[*len]);
+			sum+=hash_char(string[loop1]);
 		}
 		else
 		{
@@ -135,9 +139,10 @@ int hash_token_mail(char *string,int *len)
 		}
 		sum%=sum_N;
 	}
+	(*len)=loop1-start;
 	return sum*len_N+(*len)%len_N;
 }
-int hash_token(char *string,int len) 
+int hash_token(int start,int len,char string[])
 {
 	int loop1=0;
 	int sum=0;
@@ -149,43 +154,20 @@ int hash_token(char *string,int len)
 	len%=len_N;
 	return sum*len_N+len;
 }
-int string_compare(int len,char string1[],char string2[])
-{
-	for(int loop1=0;loop1<len;loop1++)
-	{
-		if(string1[loop1] != string2[loop1])
-		{
-			return 0;
-		}
-	}
-	return 1;
-}
-void put_into_hash_table(int hash_value,char* string_start,int hash_table_id)//chaining
+void put_into_hash_table(int hash_value,int string_index,int mail_index,int query_index,int hash_table_id,char string[])//chaining
 {
 	hash_data *data=hash_table[hash_table_id][hash_value];
-	// 考慮data是NULL的情況
-	/*
-	if (data == NULL)
-	{
-		data = (hash_data*) malloc(sizeof(hash_data));
-		data->string_start = string_start;
-		data->mail_index = mail_index;
-		data->query_index = query_index;
-		data->next = NULL;
-		return;
-	}
-	*/
 	while(1)
 	{
-		if(data->mail_index==mail_index && data->query_index==query_index)
+		if(data->mail_index==mail_index&&data->query_index==query_index)
 		{
 			if(data->next==NULL)
 			{
-				data->next=(hash_data*)malloc(sizeof(hash_data));
+				data->next=malloc(sizeof(hash_data));
 				data=data->next;
-				data->string_start = string_start;
-				data->mail_index = mail_index;
-				data->query_index = query_index;
+				data->string_start=&string[string_index];
+				data->mail_index=mail_index;
+				data->query_index=query_index;
 				data->next=NULL;
 				return;
 			}
@@ -196,29 +178,36 @@ void put_into_hash_table(int hash_value,char* string_start,int hash_table_id)//c
 		}
 		else
 		{
-			data->string_start=string_start;
+			data->string_start=&string[string_index];
 			data->mail_index=mail_index;
 			data->query_index=query_index;
-			data->next = NULL;
-			//garbage collection 省略
 			return;
 		}
 	}
 }
-
-int in_the_mail(char* string,int len,int hash_table_id)//true is 1, false is 0
+int string_compare(int len,char string1[],char string2[])
 {
-	hash_data *data=hash_table[hash_table_id][hash_token(string,len)];
-	if(data == NULL) return 0;
+	for(int loop1=0;loop1<len;loop1++)
+	{
+		if(hash_char(string1[loop1])!=hash_char(string2[loop1]))
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
+int in_the_mail(int start,int len,int mail_index,int query_index,int hash_table_id,char string[])//true is 1, false is 0
+{
+	hash_data *data=hash_table[hash_table_id][hash_token(start,len,string)];
 	while(1)
 	{
 		if(data->mail_index!=mail_index||data->query_index!=query_index)
 		{
 			return 0;
 		}
-		else// mail_index and query_index are identical 
+		else//data->mail_index==mail_index
 		{
-			if(string_compare(len,string,data->string_start))
+			if(string_compare(len,&string[start],data->string_start))
 			{
 				return 1;
 			}
@@ -236,30 +225,6 @@ int in_the_mail(char* string,int len,int hash_table_id)//true is 1, false is 0
 		}
 	}
 }
-void Build_Hash_Table(int hash_table_id){
-	if(hash_table_id == 0){
-		// expression match
-		char* text = mails[mail_index].subject;
-		int len, hash_value;
-		while(true){
-			//fprintf(stderr,"\n%s\n",text);
-			for(int index = 0; text[index]!='\0'; index++){
-				if(!is_legal(text[index])) continue;
-				//fprintf(stderr,"hi1");
-				hash_value=hash_token_mail(text+index, &len);
-				//fprintf(stderr," %d",hash_value);
-				put_into_hash_table(hash_value,text+index,0);
-				index += len;
-				if(text[index] == '\0') break;
-				//fprintf(stderr,"hi1");
-			}
-			if(text == mails[mail_index].subject) text = mails[mail_index].content;
-			else break;
-		}
-	}
-}
-
-
 //end of hashing funcs
 void push(char oper){
     top++;
@@ -275,7 +240,7 @@ bool isAlpha (char c){
     else
         return false;
 }
-bool toBool (char expression[],int *i){
+bool toBool (char expression[],int *i,int mail_index,int query_index){
     int start = *i,length=1,id;
     *i = *i + 1;
     while(isAlpha(expression[*i])){
@@ -283,7 +248,7 @@ bool toBool (char expression[],int *i){
         *i = *i+1;
     }
     *i = *i - 1;
-    return in_the_mail(expression+start, length, 0);
+    return in_the_mail(start,length,mail_index,query_index,0,expression);
 													
 }
 bool operate (bool a,bool b,char oper){
@@ -307,11 +272,11 @@ bool supreme (char a){
             return false;
     }
 }
-bool transfer(char expression[]){
+bool transfer(char expression[],int mail_index,int query_index){
     int i=0,pl=0; //pl is the length of postfix
     while(expression[i]!='\0'){
         if(isAlpha(expression[i])){
-            postfix[pl] = toBool(expression,&i);
+            postfix[pl] = toBool(expression,&i,mail_index,query_index);
             pl++;
         }
         else if(expression[i]=='!'){
@@ -319,7 +284,7 @@ bool transfer(char expression[]){
                 push(expression[i]);
             else{
                 i++;
-                postfix[pl] = !toBool(expression,&i);
+                postfix[pl] = !toBool(expression,&i,mail_index,query_index);
                 pl++;
             }
         }
@@ -362,41 +327,63 @@ int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
-	for(int loop0 = 0; loop0<2; loop0++){ //initialize the hash_table0 & hash_table1
-		for (int loop1 = 0; loop1<hash_N; loop1++){
-			hash_table[loop0][loop1]=(hash_data*)malloc(sizeof(hash_data));
-			hash_table[loop0][loop1]->string_start=NULL;
-			hash_table[loop0][loop1]->mail_index=-1;
-			hash_table[loop0][loop1]->query_index=-1;
-			hash_table[loop0][loop1]->next=NULL;
-		}
+	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table0
+	{
+		hash_table[0][loop1]=malloc(sizeof(hash_table));
+		hash_table[0][loop1]->string_start=NULL;
+		hash_table[0][loop1]->mail_index=-1;
+		hash_table[0][loop1]->query_index=-1;
+		hash_table[0][loop1]->next=NULL;
 	}
-	n_queries = 100;
+	for(int loop1=0;loop1<hash_N;loop1++)//initialize the hash_table1
+	{
+		hash_table[1][loop1]=malloc(sizeof(hash_table));
+		hash_table[1][loop1]->string_start=NULL;
+		hash_table[1][loop1]->mail_index=-1;
+		hash_table[1][loop1]->query_index=-1;
+		hash_table[1][loop1]->next=NULL;
+	}
 	for(int loop1 = 0; loop1 < n_queries; loop1++){
-		
 		if(queries[loop1].type == expression_match)
 		{
-			query_index = queries[loop1].id;
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
+			int len,hash_value;
 			for(int loop2 = 0; loop2 < n_mails;loop2++)
 			{
 				// todo
 				mail_index = mails[loop2].id;
-				//fprintf(stderr,"hi1");
-				Build_Hash_Table(0);
-				//fprintf(stderr,"hi2");
-				if(transfer(expression)){
+				for(loop3=0;;loop3++)//hash the current email subject
+				{
+					hash_value=hash_token_mail(loop3,&len,mails[loop2].subject);
+					put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].subject);
+					loop3+=len;
+					if(mails[loop2].subject[loop3]=='\0')
+					{
+						break;
+					}
+				}
+				for(loop3=0;;loop3++)//hash the current email content
+				{
+					hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
+					put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].content);
+					loop3+=len;
+					if(mails[loop2].content[loop3]=='\0')
+					{
+						break;
+					}
+				}
+				if(transfer(expression,mail_index,loop1)){
 					ans[n_ans] = mail_index;
 					n_ans+=1;
 				}
 			}
+			// fprintf(stderr,"id:%d\n",queries[i].id);
+			// fprintf(stderr,"data:%d\n",queries[i].data);
 			// qsort(ans, n_ans,sizeof(int),comp);
 			api.answer(queries[loop1].id, ans, n_ans);
 		}
-		
-		
 		if(queries[loop1].type == find_similar)
 		{
 			int *ans;
@@ -455,7 +442,6 @@ int main(void) {
 			}
 			api.answer(queries[loop1].id, ans, ans_len);
 		}
-		
 		if(queries[loop1].type == group_analyse){
 			int ans[2];
 			int len = queries[loop1].data.group_analyse_data.len;
