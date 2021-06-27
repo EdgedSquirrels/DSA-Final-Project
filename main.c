@@ -390,16 +390,12 @@ int main(void) {
 			api.answer(queries[loop1].id, ans, n_ans);
 			if(debug)
 			{
-				char blank=' ',coma=':',enter='\n';
-				fwrite(&loop1,sizeof(int),1,output);
-				fwrite(&coma,sizeof(char),1,output);
-				fwrite(&blank,sizeof(char),1,output);
+				fprintf(output,"%d:",loop1);
 				for(loop2=0;loop2<n_ans;loop2++)
 				{
-					fwrite(&ans[loop2],sizeof(int),1,output);
-					fwrite(&blank,sizeof(char),1,output);
+					fprintf(output," %d",ans[loop2]);
 				}
-				fwrite(&enter,sizeof(char),1,output);
+				fprintf(output,"\n");
 			}
 		}
 		if(queries[loop1].type == find_similar)
@@ -465,6 +461,15 @@ int main(void) {
 				}
 			}
 			api.answer(queries[loop1].id, ans, ans_len);
+			if(debug)
+			{
+				fprintf(output,"%d:",loop1);
+				for(loop2=0;loop2<ans_len;loop2++)
+				{
+					fprintf(output," %d",ans[loop2]);
+				}
+				fprintf(output,"\n");
+			}
 		}
 		if(queries[loop1].type == group_analyse){
 			int ans[2];
@@ -488,6 +493,15 @@ int main(void) {
 			fprintf(stderr,"ans:%d %d\n",ans[0],ans[1]);
 			*/
 			api.answer(queries[loop1].id, ans, 2);
+			if(debug)
+			{
+				fprintf(output,"%d:",loop1);
+				for(loop2=0;loop2<2;loop2++)
+				{
+					fprintf(output," %d",ans[loop2]);
+				}
+				fprintf(output,"\n");
+			}
 			//return :[ng, lg] 
 			//ng: numberofgroups 
 			//lg: sizeoflargestgroup 
