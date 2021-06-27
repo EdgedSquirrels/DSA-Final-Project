@@ -442,7 +442,8 @@ int main(void) {
 			}
 			api.answer(queries[loop1].id, ans, ans_len);
 		}
-		if(queries[loop1].type == group_analyse){
+		if(queries[loop1].type == group_analyse)
+		{
 			int ans[2];
 			int len = queries[loop1].data.group_analyse_data.len;
 			int* mids = queries[loop1].data.group_analyse_data.mids;
