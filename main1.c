@@ -344,11 +344,32 @@ int main(void) {
 	}
 	for(int loop1=0;loop1<n_mails;loop1++)//hash every mails
 	{
-		for(int loop2=0;;loop2++)
+		for(int loop2=0;;loop2++)//subject
 		{
+			int len=0;
 			if(is_legal(mails[loop1].subject[loop2]))
 			{
-				
+				int hash_value=hash_token_mail(loop2,&len,mails[loop1].subject);
+				put_into_hash_table(hash_value,loop2,loop1,mails[loop1].subject);
+				loop2+=len;
+			}
+			if(mails[loop1].subject[loop2]=='\0')
+			{
+				break;
+			}
+		}
+		for(int loop2=0;;loop2++)//content
+		{
+			int len=0;
+			if(is_legal(mails[loop1].content[loop2]))
+			{
+				int hash_value=hash_token_mail(loop2,&len,mails[loop1].content);
+				put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
+				loop2+=len;
+			}
+			if(mails[loop1].content[loop2]=='\0')
+			{
+				break;
 			}
 		}
 	}
@@ -367,9 +388,7 @@ int main(void) {
 				{
 					if(is_legal(mails[loop2].subject[loop3]))
 					{
-						hash_value=hash_token_mail(loop3,&len,mails[loop2].subject);
-						put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].subject);
-						loop3+=len;
+						
 					}
 					if(mails[loop2].subject[loop3]=='\0')
 					{
