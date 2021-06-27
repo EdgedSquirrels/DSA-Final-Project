@@ -364,7 +364,7 @@ int main(void) {
 	{
 		for(int loop2=0;loop2<hash_N;loop2++)
 		{
-			hash_table[loop1][loop2]=malloc(sizeof(hash_table));
+			hash_table[loop1][loop2]=malloc(sizeof(hash_data));
 			hash_table[loop1][loop2]->string_start=NULL;
 			hash_table[loop1][loop2]->next=NULL;
 		}
