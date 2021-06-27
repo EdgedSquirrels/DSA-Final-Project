@@ -251,7 +251,7 @@ bool toBool (char expression[],int *i,int mail_index,int query_index){
         *i = *i+1;
     }
     *i = *i - 1;
-    return in_the_mail(start,length,mail_index,query_index,0,expression);
+    return in_the_mail(start,length,mail_index,expression);
 													
 }
 bool operate (bool a,bool b,char oper){
