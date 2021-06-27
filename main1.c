@@ -98,7 +98,8 @@ typedef struct hash_data//use chaining
 hash_data ***hash_table;
 struct node
 {
-	int data;
+	int index;
+	int len;
 	struct node *next;
 };
 typedef struct linked_list//head->...->tail
@@ -341,11 +342,11 @@ int main(void) {
 	{
 		token_list_subject[loop1]->head=malloc(sizeof(struct node));
 		token_list_subject[loop1]->tail=token_list_subject[loop1]->head;
-		token_list_subject[loop1]->head->data=-1;
+		token_list_subject[loop1]->head->index=-1;
 		token_list_subject[loop1]->head->next=NULL;
 		token_list_content[loop1]->head=malloc(sizeof(struct node));
 		token_list_content[loop1]->tail=token_list_content[loop1]->head;
-		token_list_content[loop1]->head->data=-1;
+		token_list_content[loop1]->head->index=-1;
 		token_list_content[loop1]->head->next=NULL;
 	}
 	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);//initialize the whole hash table
@@ -374,15 +375,17 @@ int main(void) {
 				{
 					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].subject);
 					mail_size[loop1]+=1;
-					if(token_list_subject[loop1]->tail->data<0)//put the token index to the linked list
+					if(token_list_subject[loop1]->tail->index<0)//put the token index to the linked list
 					{
-						token_list_subject[loop1]->tail->data=loop2;
+						token_list_subject[loop1]->tail->index=loop2;
+						token_list_subject[loop1]->tail->len=len;
 					}
 					else
 					{
 						token_list_subject[loop1]->tail->next=malloc(sizeof(struct node));
 						token_list_subject[loop1]->tail=token_list_subject[loop1]->tail->next;
-						token_list_subject[loop1]->tail->data=loop2;
+						token_list_subject[loop1]->tail->index=loop2;
+						token_list_subject[loop1]->tail->len=len;
 						token_list_subject[loop1]->tail->next=NULL;
 					}
 				}
@@ -403,15 +406,17 @@ int main(void) {
 				{
 					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
 					mail_size[loop1]+=1;
-					if(token_list_content[loop1]->tail->data<0)//put the token index to the linked list
+					if(token_list_content[loop1]->tail->index<0)//put the token index to the linked list
 					{
-						token_list_content[loop1]->tail->data=loop2;
+						token_list_content[loop1]->tail->index=loop2;
+						token_list_content[loop1]->tail->len=len;
 					}
 					else
 					{
 						token_list_content[loop1]->tail->next=malloc(sizeof(struct node));
 						token_list_content[loop1]->tail=token_list_content[loop1]->tail->next;
-						token_list_content[loop1]->tail->data=loop2;
+						token_list_content[loop1]->tail->index=loop2;
+						token_list_content[loop1]->tail->len=len;
 						token_list_content[loop1]->tail->next=NULL;
 					}
 				}
@@ -458,6 +463,7 @@ int main(void) {
 			double threshold=queries[loop1].data.find_similar_data.threshold;
 			double intersect_len;
 			double similarity;
+			struct node *node_to_search;
 			int ans_len=0;
 			for(loop2=0;loop2<n_mails;loop2++)
 			{
@@ -467,9 +473,37 @@ int main(void) {
 					continue;
 				}
 				//get the intersect_len
-				while(1)
+				node_to_search=token_list_subject[loop2]->head;
+				while(1)//search subject
 				{
-
+					if(in_the_mail(node_to_search->index,node_to_search->len,loop2,mails[loop2].subject))
+					{
+						intersect_len+=1;
+					}
+					if(node_to_search->next=NULL)
+					{
+						break;
+					}
+					else
+					{
+						node_to_search=node_to_search->next;
+					}
+				}
+				node_to_search=token_list_content[loop2]->head;
+				while(1)//search content
+				{
+					if(in_the_mail(node_to_search->index,node_to_search->len,loop2,mails[loop2].subject))
+					{
+						intersect_len+=1;
+					}
+					if(node_to_search->next=NULL)
+					{
+						break;
+					}
+					else
+					{
+						node_to_search=node_to_search->next;
+					}
 				}
 				similarity=(intersect_len)/(mail_size[loop2]+mail_size[mid]-intersect_len);
 				if(similarity>threshold)
