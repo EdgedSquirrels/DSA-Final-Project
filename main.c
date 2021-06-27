@@ -356,9 +356,12 @@ int main(void) {
 				mail_index = mails[loop2].id;
 				for(loop3=0;;loop3++)//hash the current email subject
 				{
-					hash_value=hash_token_mail(loop3,&len,mails[loop2].subject);
-					put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].subject);
-					loop3+=len;
+					if(is_legal(mails[loop2].subject[loop3]))
+					{
+						hash_value=hash_token_mail(loop3,&len,mails[loop2].subject);
+						put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].subject);
+						loop3+=len;
+					}
 					if(mails[loop2].subject[loop3]=='\0')
 					{
 						break;
@@ -366,9 +369,12 @@ int main(void) {
 				}
 				for(loop3=0;;loop3++)//hash the current email content
 				{
-					hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
-					put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].content);
-					loop3+=len;
+					if(is_legal(mails[loop2].content[loop3]))
+					{
+						hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
+						put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].content);
+						loop3+=len;
+					}
 					if(mails[loop2].content[loop3]=='\0')
 					{
 						break;
