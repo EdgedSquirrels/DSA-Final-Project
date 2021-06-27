@@ -328,7 +328,11 @@ bool transfer(char expression[],int mail_index,int query_index){
 //----------------------------------------------------------------
 int main(void) {
 	api.init(&n_mails, &n_queries, &mails, &queries);
-	FILE *output=fopen("output.txt","w+");
+	FILE *output;
+	if(debug)
+	{
+		output=fopen("output.txt","w+");
+	}
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
 	double *mail_size=(double*)malloc(sizeof(double)*n_mails);
