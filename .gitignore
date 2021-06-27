@@ -7,3 +7,4 @@ Makefile
 .git
 .vscode
 *.exe
+main
