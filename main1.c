@@ -96,6 +96,16 @@ typedef struct hash_data//use chaining
 	struct hash_data *next;
 }hash_data;
 hash_data ***hash_table;
+struct node
+{
+	int data;
+	struct node *next;
+};
+typedef struct linked_list//head->...->tail
+{
+	struct node head;
+	struct node tail;
+}linked_list;
 int is_legal(char s)
 {
 	if((s-'0')<0||(s-'0')>9)
@@ -320,11 +330,12 @@ int main(void) {
 	FILE *output=fopen("output.txt","w+");
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
-	double *mail_len=(double*)malloc(sizeof(double)*n_mails);
+	double *mail_size=(double*)malloc(sizeof(double)*n_mails);
 	for(loop1=0;loop1<n_mails;loop1++)
 	{
-		mail_len[loop1]=0;
+		mail_size[loop1]=0;
 	}
+	linked_list **token_list=(linked_list*)malloc(sizeof(linked_list*)*n_mails);
 	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);//initialize the whole hash table
 	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
 	{
@@ -350,7 +361,7 @@ int main(void) {
 				if(!in_the_mail(loop2,len,loop1,mails[loop1].subject))
 				{
 					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].subject);
-					mail_len[loop1]+=1;
+					mail_size[loop1]+=1;
 				}
 				loop2+=len;
 			}
@@ -365,7 +376,11 @@ int main(void) {
 			if(is_legal(mails[loop1].content[loop2]))
 			{
 				int hash_value=hash_token_mail(loop2,&len,mails[loop1].content);
-				if(!in_the_mail(loop2))
+				if(!in_the_mail(loop2,len,loop1,mails[loop1].content))
+				{
+					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
+					mail_size[loop1]+=1;
+				}
 				put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
 				loop2+=len;
 			}
@@ -410,23 +425,6 @@ int main(void) {
 			double mid_len=0,mail_len,intersect_len;
 			double similarity;
 			int ans_len=0;
-			for(loop2=0;;loop2++)//hash the mid
-			{
-				if(is_legal(mails[mid].content[loop2]))
-				{
-					hash_value=hash_token_mail(loop2,&len,mails[mid].content);
-					if(!in_the_mail(loop2,len,mid,loop1,0,mails[mid].content))
-					{
-						put_into_hash_table(hash_value,loop2,mid,loop1,0,mails[mid].content);
-						mid_len++;
-					}
-					loop2+=len;
-				}
-				if(mails[mid].content[loop2]=='\0')
-				{
-					break;
-				}
-			}
 			for(loop2=0;loop2<n_mails;loop2++)
 			{
 				mail_len=0,intersect_len=0;
@@ -434,27 +432,7 @@ int main(void) {
 				{
 					continue;
 				}
-				for(loop3=0;;loop3++)//hash the current email
-				{
-					if(is_legal(mails[loop2].content[loop3]))
-					{
-						hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
-						if(!in_the_mail(loop3,len,loop2,loop1,1,mails[loop2].content))
-						{
-							put_into_hash_table(hash_value,loop3,loop2,loop1,1,mails[loop2].content);
-							mail_len++;
-							if(in_the_mail(loop3,len,mid,loop1,0,mails[loop2].content))
-							{
-								intersect_len++;
-							}
-						}
-						loop3+=len;
-					}
-					if(mails[loop2].content[loop3]=='\0')
-					{
-						break;
-					}
-				}
+				//get the intersect_len
 				similarity=(intersect_len)/(mail_len+mid_len-intersect_len);
 				if(similarity>threshold)
 				{
