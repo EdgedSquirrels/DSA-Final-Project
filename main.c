@@ -358,7 +358,7 @@ int main(void) {
 	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);//initialize the whole hash table
 	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
 	{
-		hash_table[loop1]=(hash_data**)malloc(sizeof(hash_data*));
+		hash_table[loop1]=(hash_data**)malloc(sizeof(hash_data*)*hash_N);
 	}
 	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
 	{
