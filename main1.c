@@ -160,12 +160,14 @@ void put_into_hash_table(int hash_value,int string_index,int mail_index,char str
 	{
 		if(data->string_start!=NULL)
 		{
-			data->next=malloc(sizeof(hash_data*))
+			data->next=malloc(sizeof(hash_data*));
+			data=data->next;
+			data->string_start=NULL;
+			data->next=NULL;
 		}
 		else
 		{
 			data->string_start=&string[string_index];
-			data->next=NULL;
 			return;
 		}
 	}
@@ -313,9 +315,9 @@ int main(void) {
 	FILE *output=fopen("output.txt","w+");
 	/* guessing no-match for all expression- match queries */
 	int loop1,loop2,loop3,loop4;//loop1 means loop with depth 1,loop2 means loop with depth 2.......
-	
-	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);
-	for(int loop1=0;loop1<n_mails;loop1++)
+	double *mail_len=(double*)malloc(sizeof(double)*n_mails);
+	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);//initialize the whole hash table
+	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
 	{
 		hash_table[loop1]=(hash_data**)malloc(sizeof(hash_data*));
 	}
@@ -336,6 +338,10 @@ int main(void) {
 			if(is_legal(mails[loop1].subject[loop2]))
 			{
 				int hash_value=hash_token_mail(loop2,&len,mails[loop1].subject);
+				if(!in_the_mail(loop2,len,loop1,mails[loop1].subject))
+				{
+
+				}
 				put_into_hash_table(hash_value,loop2,loop1,mails[loop1].subject);
 				loop2+=len;
 			}
@@ -365,35 +371,10 @@ int main(void) {
 			int *ans, n_ans = 0;
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			char *expression = queries[loop1].data.expression_match_data.expression;
-			int len,hash_value;
 			for(int loop2 = 0; loop2 < n_mails;loop2++)
 			{
 				// todo
 				mail_index = mails[loop2].id;
-				for(loop3=0;;loop3++)//hash the current email subject
-				{
-					if(is_legal(mails[loop2].subject[loop3]))
-					{
-						
-					}
-					if(mails[loop2].subject[loop3]=='\0')
-					{
-						break;
-					}
-				}
-				for(loop3=0;;loop3++)//hash the current email content
-				{
-					if(is_legal(mails[loop2].content[loop3]))
-					{
-						hash_value=hash_token_mail(loop3,&len,mails[loop2].content);
-						put_into_hash_table(hash_value,loop3,loop2,loop1,0,mails[loop2].content);
-						loop3+=len;
-					}
-					if(mails[loop2].content[loop3]=='\0')
-					{
-						break;
-					}
-				}
 				if(transfer(expression,mail_index,loop1)){
 					ans[n_ans] = mail_index;
 					n_ans+=1;
@@ -416,7 +397,6 @@ int main(void) {
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			int mid=queries[loop1].data.find_similar_data.mid;
 			double threshold=queries[loop1].data.find_similar_data.threshold;
-			int hash_value,len;
 			double mid_len=0,mail_len,intersect_len;
 			double similarity;
 			int ans_len=0;
