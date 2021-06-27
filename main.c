@@ -340,8 +340,8 @@ int main(void) {
 	{
 		mail_size[loop1]=0;
 	}
-	linked_list **token_list_subject=(linked_list*)malloc(sizeof(linked_list*)*n_mails);//store the index of the token in subject
-	linked_list **token_list_content=(linked_list*)malloc(sizeof(linked_list*)*n_mails);//store the index of the token in content
+	linked_list **token_list_subject=(linked_list**)malloc(sizeof(linked_list*)*n_mails);//store the index of the token in subject
+	linked_list **token_list_content=(linked_list**)malloc(sizeof(linked_list*)*n_mails);//store the index of the token in content
 	for(int loop1=0;loop1<n_mails;loop1++)//initialize link lists
 	{
 		token_list_subject[loop1]->head=malloc(sizeof(struct node));
