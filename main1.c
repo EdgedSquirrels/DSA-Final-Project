@@ -335,10 +335,18 @@ int main(void) {
 	{
 		mail_size[loop1]=0;
 	}
-	linked_list **token_list=(linked_list*)malloc(sizeof(linked_list*)*n_mails);
+	linked_list **token_list_subject=(linked_list*)malloc(sizeof(linked_list*)*n_mails);
+	linked_list **token_list_content=(linked_list*)malloc(sizeof(linked_list*)*n_mails);
 	for(int loop1=0;loop1<n_mails;loop1++)
 	{
-		token_list[loop1]->head=(struct node)malloc(sizeof(struct node));
+		token_list_subject[loop1]->head=malloc(sizeof(struct node));
+		token_list_subject[loop1]->tail=token_list_subject[loop1]->head;
+		token_list_subject[loop1]->head->data=-1;
+		token_list_subject[loop1]->head->next=NULL;
+		token_list_content[loop1]->head=malloc(sizeof(struct node));
+		token_list_content[loop1]->tail=token_list_content[loop1]->head;
+		token_list_content[loop1]->head->data=-1;
+		token_list_content[loop1]->head->next=NULL;
 	}
 	hash_table=(hash_data***)malloc(sizeof(hash_data**)*n_mails);//initialize the whole hash table
 	for(int loop1=0;loop1<n_mails;loop1++)//initialize the whole hash table
@@ -426,18 +434,18 @@ int main(void) {
 			ans = (int*)malloc(sizeof(int)*n_mails);
 			int mid=queries[loop1].data.find_similar_data.mid;
 			double threshold=queries[loop1].data.find_similar_data.threshold;
-			double mid_len=0,mail_len,intersect_len;
+			double intersect_len;
 			double similarity;
 			int ans_len=0;
 			for(loop2=0;loop2<n_mails;loop2++)
 			{
-				mail_len=0,intersect_len=0;
+				intersect_len=0;
 				if(loop2==mid)
 				{
 					continue;
 				}
 				//get the intersect_len
-				similarity=(intersect_len)/(mail_len+mid_len-intersect_len);
+				similarity=(intersect_len)/(mail_size[loop2]+mail_size[mid]-intersect_len);
 				if(similarity>threshold)
 				{
 					ans[ans_len]=loop2;
