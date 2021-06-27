@@ -374,6 +374,17 @@ int main(void) {
 				{
 					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].subject);
 					mail_size[loop1]+=1;
+					if(token_list_subject[loop1]->tail->data<0)//put the token index to the linked list
+					{
+						token_list_subject[loop1]->tail->data=loop2;
+					}
+					else
+					{
+						token_list_subject[loop1]->tail->next=malloc(sizeof(struct node));
+						token_list_subject[loop1]->tail=token_list_subject[loop1]->tail->next;
+						token_list_subject[loop1]->tail->data=loop2;
+						token_list_subject[loop1]->tail->next=NULL;
+					}
 				}
 				loop2+=len;
 			}
@@ -392,6 +403,17 @@ int main(void) {
 				{
 					put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
 					mail_size[loop1]+=1;
+					if(token_list_content[loop1]->tail->data<0)//put the token index to the linked list
+					{
+						token_list_content[loop1]->tail->data=loop2;
+					}
+					else
+					{
+						token_list_content[loop1]->tail->next=malloc(sizeof(struct node));
+						token_list_content[loop1]->tail=token_list_content[loop1]->tail->next;
+						token_list_content[loop1]->tail->data=loop2;
+						token_list_content[loop1]->tail->next=NULL;
+					}
 				}
 				put_into_hash_table(hash_value,loop2,loop1,mails[loop1].content);
 				loop2+=len;
